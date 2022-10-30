@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "773338812560",
+    "project_id": "fir-integration-c6fab",
+    "storage_bucket": "fir-integration-c6fab.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:773338812560:android:dbb63f4ac2c20061be4815",
+        "android_client_info": {
+          "package_name": "com.example.login.login"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "773338812560-slig3rdmdtkkaqfitnn1u80f6303dgvi.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBYAVyh4rf6bq7cNMjY__yrfQMoO0RdbGM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "773338812560-slig3rdmdtkkaqfitnn1u80f6303dgvi.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
