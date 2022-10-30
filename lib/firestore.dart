@@ -3,7 +3,51 @@
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/services.dart';
 
+// signin function
+Future<String> firebase_usersignin(useremail,userpassword) async {
+  var  result;
+  try{
+    final user=await FirebaseAuth.instance.signInWithEmailAndPassword(email:useremail , password: userpassword);
+    result="successful";
+  } on FirebaseException catch(e){
+    if(e.code=="email-already-in-use"){
+      result="Email was already registered use forgot password";
+    }
+    if (e.code=="user-not-found"){result="either your email or password is wrong";}
+    else{
+      result="something went wrong";
+    }
+  } on PlatformException catch (e) {
+    result =e.toString();
+  }
+  return result;
+}
+
+// user signup function.
+Future<String> firebase_usersignup(useremail,userpassword) async {
+  var  result;
+  try{
+    final user=await FirebaseAuth.instance.createUserWithEmailAndPassword(email:useremail , password: userpassword);
+    final user1= await FirebaseAuth.instance.currentUser;
+    await user1?.sendEmailVerification();
+    result="successful";
+  } on FirebaseException catch(e){
+    if(e.code=="email-already-in-use"){
+      result="Email was already registered use forgot password";
+    }
+    if (e.code=="user-not-found"){result="either your email or password is wrong";}
+    else{
+      result="something went wrong";
+    }
+  } on PlatformException catch (e) {
+    result =e.toString();
+  }
+  return result;
+}
+
+//user post like status
 Future<bool> like_status(id) async{
   final user= await FirebaseAuth.instance.currentUser;
   var uid=user?.uid;
@@ -15,6 +59,7 @@ Future<bool> like_status(id) async{
   return false;
 }
 
+// user liking or disliking the post.
 onlikepress(liked ,id) async {
   final user =await FirebaseAuth.instance.currentUser;
   var uid=user?.uid;
