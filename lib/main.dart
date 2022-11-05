@@ -19,7 +19,7 @@ import 'voting_page.dart';
 
 void main() async {
 
-  runApp(Mysplash());
+  runApp(votingpage());
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,

@@ -42,13 +42,15 @@ class _Myconfessionpage extends State<Myconfessionpage>{
     return MaterialApp(
 
         home: Scaffold(
-          backgroundColor: Colors.white,
+          //backgroundColor: Colors.white,
           appBar: AppBar(
             backgroundColor: Colors.blueAccent,
             foregroundColor: Colors.white,
             title: Text("confessions"),
           ),
-          body:
+          body:Container(
+            decoration:BoxDecoration(gradient:LinearGradient(begin:Alignment.topLeft,colors: [Colors.amberAccent,Colors.white],end:Alignment.bottomRight)),
+            child:
           StreamBuilder<QuerySnapshot<Map<String , dynamic>>> (
             stream: FirebaseFirestore.instance.collection("posts").where("college",isEqualTo:_college).snapshots(),
             builder:(context  , future){
@@ -65,9 +67,10 @@ class _Myconfessionpage extends State<Myconfessionpage>{
                       //if (i.isOdd){return const Divider();}
                       return
                         Card(
+                          margin: EdgeInsets.fromLTRB(10, 3, 10, 10),
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16),side: BorderSide(color: Colors.amberAccent)),
-                            elevation: 15,
-                            shadowColor: Colors.grey.withOpacity(0.6),
+                            elevation: 4,
+                            shadowColor: Colors.white,
                             child: ListTile(
                               onTap: (){
                                 Navigator.of(context).push(PageTransition(type:PageTransitionType.rightToLeft,duration:const Duration(milliseconds: 300),child:postpage(collection:future.data!.docs[i])));
@@ -100,6 +103,8 @@ class _Myconfessionpage extends State<Myconfessionpage>{
               }
             },
           ),
+
+        ),
           floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
           floatingActionButton: FloatingActionButton(backgroundColor: Colors.blue,elevation: 3,child: Icon(Icons.add),onPressed: (){Navigator.of(context).push(MaterialPageRoute(builder: (context)=> newpostpage(college:_college)));},),
         ));
