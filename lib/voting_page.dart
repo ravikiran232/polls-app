@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'firebase_options.dart';
 import 'package:animated_splash_screen/animated_splash_screen.dart';
@@ -30,6 +31,8 @@ class votingpage extends StatefulWidget{
 class _votingpage extends State<votingpage> with TickerProviderStateMixin{
   bool isslidingopened=false;
   bool _value=false;
+  List values=[1,2,3,4];
+
   @override
   Widget build(BuildContext context){
     return MaterialApp(
@@ -45,9 +48,6 @@ class _votingpage extends State<votingpage> with TickerProviderStateMixin{
           leading: IconButton(icon: Icon(Icons.arrow_back),onPressed:(){Navigator.of(context).pop();} ,),
           actions: [
             IconButton(onPressed: (){
-              setState(() {
-                isslidingopened=true;
-              });
             }, icon: Icon(Icons.menu),padding: EdgeInsets.symmetric(horizontal: 30),)
           ],
           title:  const Text("Polls"),
@@ -72,39 +72,39 @@ class _votingpage extends State<votingpage> with TickerProviderStateMixin{
             Column(
                 children:[InkWell(splashColor:Colors.lightGreenAccent,onTap:(){
                   },
-                    child:Container(height:400,
+                    child:Container(height:450,
                 child:Card(
               margin: EdgeInsets.fromLTRB(15, 10, 15, 10),
               elevation: 5,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
               child:
-              Column(
+              SingleChildScrollView(
+                  child:Column(
                   children:[
-                    Padding(padding:EdgeInsets.fromLTRB(20, 20, 10, 20),
+                    Padding(padding:EdgeInsets.fromLTRB(20, 20, 10, 10),
                         child:Row(  children: [CircleAvatar(radius: 20,foregroundImage: NetworkImage("https://thumbs.dreamstime.com/b/girl-vector-icon-elements-mobile-concept-web-apps-thin-line-icons-website-design-development-app-premium-pack-glyph-flat-148592081.jpg"),),SizedBox(width: 5,),Text("user3467",style: TextStyle(color: Colors.black54),)],)),
-                    Padding(padding:EdgeInsets.fromLTRB(10, 15, 10, 15),child:const ReadMoreText("""Hi, this is the sample question of polling post in which users can cast the vote anonymously. Thank you,hi, this is the sample question of polling post in which users can cast the vote anonymously. Thank you""",trimLines: 3,
+                    Padding(padding:EdgeInsets.fromLTRB(10, 1, 10, 15),child:const ReadMoreText("""Hi, this is the sample question of polling post in which users can cast the vote anonymously. Thank you,hi, this is the sample question of polling post in which users can cast the vote anonymously. Thank you""",trimLines: 3,
                       colorClickableText: Colors.blue,
                       trimMode: TrimMode.Line,
                       trimCollapsedText: '..Read More',
                       style: TextStyle(fontSize: 14,fontWeight: FontWeight.bold),
                       trimExpandedText: ' Less',),),
-                    Container(
-                      height: 50,
-                      margin: EdgeInsets.symmetric(vertical: 5,horizontal: 10),
-                      padding: EdgeInsets.symmetric(horizontal: 10),
-                      decoration: BoxDecoration(shape: BoxShape.rectangle,borderRadius: BorderRadius.circular(20),border: Border.all(color: Colors.black54),color: _value?Colors.lightBlue:Colors.white),
-                      child: Row(children: [Center(child:Row(children:[Checkbox(value: _value, onChanged:(newvalue){
-                        setState(() {
-                          _value=!_value;
-                        });
-                      }),Text("hi,this for yes option")]))],),
-                    )
-                  ]
-            ))))]),
+                  Column(
+                    children: values.map((items)=>optionforquestion()).toList()
+                  ),
+                   SizedBox(height: 3,),
+                    Row(children:[OutlinedButton(style: OutlinedButton.styleFrom(side: BorderSide(color: Colors.white)),onPressed: (){}, child: Icon(Icons.favorite,color: Colors.red,)), IconButton(onPressed: (){}, icon:Icon(Icons.share)),SizedBox(width: 120,),Text("votes : 330",style: TextStyle(color: Colors.black54),)
+                    ])
+                  ]))
+
+                )))]
+            ),
             Icon(Icons.timelapse,size:40),
             Icon(Icons.timelapse,size:40)
           ],
         ),
+        floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+        floatingActionButton: FloatingActionButton(backgroundColor: Colors.blue,elevation: 3,child: Icon(Icons.add),onPressed: (){Navigator.push(context,MaterialPageRoute(builder: (context)=> newpollpage()));},),
       )
       ),
       );
@@ -112,40 +112,130 @@ class _votingpage extends State<votingpage> with TickerProviderStateMixin{
   }
 }
 
-
-sliding_panel(controller){
-  PanelState panel_value=PanelState.OPEN;
-  
-
-  return SlidingUpPanel(
-      backdropEnabled: true,
-      minHeight: 0,
-      borderRadius: BorderRadius.circular(30),
-      margin: EdgeInsets.only(left: 10,right: 10),
-      maxHeight: 550,
-      defaultPanelState: panel_value,
-    onPanelClosed: (){
-        panel_value=PanelState.CLOSED;
-    },
-    panel: TabBar(
-      controller: controller,
-        padding: EdgeInsets.symmetric(horizontal: 20),
-        isScrollable: false,
-        indicator: BoxDecoration(borderRadius:BorderRadius.circular(20),shape: BoxShape.rectangle,color: Colors.blue),
-        labelColor: Colors.white,
-        unselectedLabelColor: Colors.blue,
-        tabs:const [
-          Tab(text: "question",icon: Icon(Icons.question_answer,color:Colors.white ,),),
-          Tab(text:"analysis",icon: Icon(Icons.analytics,color: Colors.white,),)
-        ] ),
-    body: TabBarView(
-      controller: controller,
-      children: [
-        Icon(Icons.poll_sharp,size: 50,),
-        Icon(Icons.pie_chart_rounded,size: 20,)
-      ],
-    ),
+class optionforquestion extends StatefulWidget{
+  @override
+  State<optionforquestion> createState()=> _optionforquestion();
+}
+class _optionforquestion extends State<optionforquestion>{
+  bool _value=false;
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(onTap: (){setState(() {
+      _value=!_value;
+    });},
+        child:Stack(
+          children:[
+            AnimatedContainer(duration: Duration(milliseconds: 300),
+              margin: const EdgeInsets.symmetric(vertical: 5,horizontal: 10),
+              decoration: BoxDecoration(shape: BoxShape.rectangle,borderRadius: BorderRadius.circular(10),color: _value?Colors.blue.withOpacity(0.5):Colors.white,),
+              width: _value?100:50,
+              height: 50,
+            ),
+            Container(
+              height: 50,
+              margin: EdgeInsets.symmetric(vertical: 5,horizontal: 10),
+              padding: EdgeInsets.symmetric(horizontal: 10),
+              decoration: BoxDecoration(shape: BoxShape.rectangle,borderRadius: BorderRadius.circular(12),border: Border.all(color: _value?Colors.blue:Colors.black54),),
+              child:
+              Row(children:[ _value?Icon(Icons.verified):SizedBox(width: 5,),Text("hi,this for yes option"),_value?Row(children:[SizedBox(width:15),Text("34%",style: TextStyle(fontWeight: FontWeight.bold),)]):SizedBox(height: 5,)]),
+            )],
+        ));
+  }
+}
 
 
-  );
+// for adding the new questions to the polls by + option.
+
+
+class newpollpage extends StatefulWidget{
+  @override
+  State<newpollpage> createState() => _newpollpage();
+}
+class _newpollpage extends State<newpollpage>{
+
+  GlobalKey<FormState> _key = new GlobalKey();
+  TextEditingController questioncontroller = TextEditingController();
+  int optionscount=2;
+  List textcontrollers= [TextEditingController(),TextEditingController()];
+
+  @override
+  Widget build(BuildContext context){
+    return MaterialApp(
+      home: Scaffold(
+        appBar: AppBar(
+          title: const Text("New Poll"),
+          elevation: 4,
+          backgroundColor:Colors.indigo[400],
+          foregroundColor: Colors.white,
+        ),
+        body: Column(
+          children: [
+            Card(
+              margin: const EdgeInsets.fromLTRB(10, 20, 10, 15),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+              elevation: 4,
+              child: Form(
+                key: _key,
+                child: Column(
+
+                    children:[
+                      TextFormField(
+                  validator: _validatequestion,
+                  controller: questioncontroller,
+                  decoration: const InputDecoration(
+                    hintText: "Enter your question",
+                    label: Text("Question"),
+                    suffixIcon: Icon(Icons.question_mark,color: Colors.blue,),
+                  ),
+                ),
+                      //SizedBox(height: 15,),
+                      ListView.builder(
+                        itemCount: optionscount ,
+                        padding: EdgeInsets.symmetric(vertical:15),
+                        itemBuilder: (context ,i){
+                          return
+                              TextFormField(
+                                validator:_validateoption,
+                                controller: textcontrollers[i],
+                                decoration: const InputDecoration(
+                                  hintText: "Enter your option",
+                                      label: Text("Option1"),
+                                ),
+                              );
+                        },
+                      ),
+                      InkWell(
+                        onTap: (){
+                          setState(() {
+                            optionscount+=1;
+                            textcontrollers.add(new TextEditingController());
+                          });
+                        },
+                        child:Row(children: const [Icon(Icons.add,color: Colors.blue,), SizedBox(width: 5,),Text("Add Option",style: TextStyle(color: Colors.blue),)],)
+                      )
+                    ])
+            ))
+          ],
+        )
+      ),
+    );
+  }
+
+}
+
+String? _validatequestion(String? value){
+  if (value!.length==0){
+    return "* Required Field";
+  }
+  else if (value!.length<=5){
+    return "Question is too short";
+  }
+  return null;
+}
+
+String? _validateoption(String? value){
+  if (value!.length==0){
+    return "* Required Field";
+  }
+  return null;
 }
