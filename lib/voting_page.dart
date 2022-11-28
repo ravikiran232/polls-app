@@ -12,6 +12,7 @@ import 'package:sql_conn/sql_conn.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:flutter_gradient_colors/flutter_gradient_colors.dart';
 import 'package:readmore/readmore.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'sql_queries.dart';
 import 'firestore.dart';
 import 'package:page_transition/page_transition.dart';
@@ -36,7 +37,9 @@ class _votingpage extends State<votingpage> with TickerProviderStateMixin{
   @override
   Widget build(BuildContext context){
     return MaterialApp(
-      home:DefaultTabController(
+      home: Builder(
+        builder:(context)=>
+      DefaultTabController(
       length:3,
       child: Scaffold(
         backgroundColor: Colors.white,
@@ -104,10 +107,10 @@ class _votingpage extends State<votingpage> with TickerProviderStateMixin{
           ],
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-        floatingActionButton: FloatingActionButton(backgroundColor: Colors.blue,elevation: 3,child: Icon(Icons.add),onPressed: (){Navigator.push(context,MaterialPageRoute(builder: (context)=> newpollpage()));},),
+        floatingActionButton: FloatingActionButton(backgroundColor: Colors.blue,elevation: 3,child: Icon(Icons.add),onPressed: (){navigatenewpoll(context);},),
       )
       ),
-      );
+      ));
 
   }
 }
@@ -164,63 +167,93 @@ class _newpollpage extends State<newpollpage>{
       home: Scaffold(
         appBar: AppBar(
           title: const Text("New Poll"),
+          leading: IconButton(icon:Icon(Icons.navigate_before),onPressed: (){Navigator.pop(context);},),
           elevation: 4,
           backgroundColor:Colors.indigo[400],
           foregroundColor: Colors.white,
         ),
-        body: Column(
-          children: [
+        body:
             Card(
               margin: const EdgeInsets.fromLTRB(10, 20, 10, 15),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
               elevation: 4,
-              child: Form(
-                key: _key,
-                child: Column(
+                child: SingleChildScrollView(
+                    padding: EdgeInsets.symmetric(vertical:8,horizontal: 10),
+                 child: Form(
+                    key: _key,
+
+                  child:Column(
 
                     children:[
                       TextFormField(
+                        //expands: true,
+                  maxLines: 3,
                   validator: _validatequestion,
                   controller: questioncontroller,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(15)
+                    ),
                     hintText: "Enter your question",
-                    label: Text("Question"),
+                    labelText: "Question",
                     suffixIcon: Icon(Icons.question_mark,color: Colors.blue,),
                   ),
                 ),
                       //SizedBox(height: 15,),
                       ListView.builder(
+                        shrinkWrap: true,
                         itemCount: optionscount ,
                         padding: EdgeInsets.symmetric(vertical:15),
                         itemBuilder: (context ,i){
                           return
+                          Padding(padding: EdgeInsets.symmetric(vertical: 5),
+                              child:
                               TextFormField(
+                                maxLength: 30,
                                 validator:_validateoption,
                                 controller: textcontrollers[i],
-                                decoration: const InputDecoration(
+                                decoration: InputDecoration(
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(15)
+                                  ),
                                   hintText: "Enter your option",
-                                      label: Text("Option1"),
+                                      labelText: "Option 1",
                                 ),
-                              );
+                              ));
                         },
                       ),
                       InkWell(
                         onTap: (){
+                          if (optionscount<=4){
                           setState(() {
                             optionscount+=1;
                             textcontrollers.add(new TextEditingController());
-                          });
+                          });}
+                          else{
+                            Fluttertoast.showToast(
+                                msg: "Maximum 5 options are allowed",
+                            timeInSecForIosWeb: 3,
+                            backgroundColor: Colors.redAccent,
+                            fontSize: 12,
+                            gravity: ToastGravity.BOTTOM);
+                          }
                         },
                         child:Row(children: const [Icon(Icons.add,color: Colors.blue,), SizedBox(width: 5,),Text("Add Option",style: TextStyle(color: Colors.blue),)],)
-                      )
+                      ),
+                      ElevatedButton(onPressed: (){
+                        if(_key.currentState?.validate()==true){Fluttertoast.showToast(msg: "hi submitted");}
+                      }, child: Text("Post"),)
                     ])
-            ))
-          ],
-        )
+            )))
+
       ),
     );
   }
 
+}
+
+navigatenewpoll (c){
+  Navigator.of(c).push( MaterialPageRoute(builder: (context)=> newpollpage()));
 }
 
 String? _validatequestion(String? value){

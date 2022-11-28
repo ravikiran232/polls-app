@@ -48,6 +48,7 @@ dependencies:
   sliding_up_panel:
   flutter_gradient_colors:
   readmore:
+  fluttertoast:
 
 
 dev_dependencies:
