@@ -13,6 +13,9 @@ import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:flutter_gradient_colors/flutter_gradient_colors.dart';
 import 'package:readmore/readmore.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
+import 'package:intl/intl.dart';
+import 'package:flutter_dialogs/flutter_dialogs.dart';
 import 'sql_queries.dart';
 import 'firestore.dart';
 import 'package:page_transition/page_transition.dart';
@@ -157,9 +160,13 @@ class newpollpage extends StatefulWidget{
 class _newpollpage extends State<newpollpage>{
 
   GlobalKey<FormState> _key = new GlobalKey();
+  ScrollController _totalscrollcontroller= ScrollController();
   TextEditingController questioncontroller = TextEditingController();
   int optionscount=2;
   List textcontrollers= [TextEditingController(),TextEditingController()];
+  var datetime ;
+  bool isprivate=false;
+  bool ismultiple=false;
 
   @override
   Widget build(BuildContext context){
@@ -177,12 +184,14 @@ class _newpollpage extends State<newpollpage>{
               margin: const EdgeInsets.fromLTRB(10, 20, 10, 15),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
               elevation: 4,
-                child: SingleChildScrollView(
-                    padding: EdgeInsets.symmetric(vertical:8,horizontal: 10),
+
                  child: Form(
                     key: _key,
 
-                  child:Column(
+                  child: SingleChildScrollView(
+                    controller:_totalscrollcontroller ,
+                 padding: EdgeInsets.symmetric(vertical:8,horizontal: 10),
+                      child: Column(
 
                     children:[
                       TextFormField(
@@ -201,12 +210,13 @@ class _newpollpage extends State<newpollpage>{
                 ),
                       //SizedBox(height: 15,),
                       ListView.builder(
+                        controller:_totalscrollcontroller ,
                         shrinkWrap: true,
                         itemCount: optionscount ,
                         padding: EdgeInsets.symmetric(vertical:15),
                         itemBuilder: (context ,i){
                           return
-                          Padding(padding: EdgeInsets.symmetric(vertical: 5),
+                          Padding(padding: EdgeInsets.symmetric(vertical: 3),
                               child:
                               TextFormField(
                                 maxLength: 30,
@@ -222,7 +232,9 @@ class _newpollpage extends State<newpollpage>{
                               ));
                         },
                       ),
-                      InkWell(
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children:[InkWell(
                         onTap: (){
                           if (optionscount<=4){
                           setState(() {
@@ -240,9 +252,60 @@ class _newpollpage extends State<newpollpage>{
                         },
                         child:Row(children: const [Icon(Icons.add,color: Colors.blue,), SizedBox(width: 5,),Text("Add Option",style: TextStyle(color: Colors.blue),)],)
                       ),
-                      ElevatedButton(onPressed: (){
-                        if(_key.currentState?.validate()==true){Fluttertoast.showToast(msg: "hi submitted");}
-                      }, child: Text("Post"),)
+                        InkWell(
+                            onTap: (){
+                              if (optionscount>2){
+                                setState(() {
+                                  optionscount-=1;
+                                  textcontrollers.removeAt(optionscount);
+                                });}
+                              else{
+                                Fluttertoast.showToast(
+                                    msg: "Minimum 2 options required",
+                                    timeInSecForIosWeb: 3,
+                                    backgroundColor: Colors.redAccent,
+                                    fontSize: 12,
+                                    gravity: ToastGravity.BOTTOM);
+                              }
+                            },
+                            child:Row(children: const [Icon(Icons.remove,color: Colors.red,), SizedBox(width: 5,),Text("remove Option",style: TextStyle(color: Colors.red),)],)
+                        ),]),
+                      SizedBox(height:8),
+                      DateTimeField(format:DateFormat("yyyy-MM-dd hh:mm:ss"),
+                          onChanged: (dt) => datetime=dt,
+                          decoration: InputDecoration(
+                            labelText: "deadline",
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(15))
+                          ),
+                          onShowPicker: (context,currentvalue){
+                        return showDatePicker(context: context, initialDate: DateTime.now(), firstDate: DateTime.now(), lastDate: DateTime.now().add(Duration(days:30)));
+                          }),
+                      Row(
+                        children:[
+                         Checkbox(
+                        value:isprivate,
+                        onChanged:(value){
+                          setState((){
+                            isprivate=!isprivate;
+                          });
+                        }
+                      ),Text("only person with link can see the post")]),
+                SizedBox(height:5),
+                Row(
+                children:[
+                Checkbox(
+                  value:ismultiple,
+                  onChanged:(value){
+                    setState((){
+                      ismultiple=!ismultiple;
+                    });
+                  }
+                ),Text("allow multiple option selection")]),
+                      ElevatedButton(onPressed: () async{
+                        if(_key.currentState?.validate()==true){await showloadingdilog(context,questioncontroller.text,textcontrollers,datetime,ismultiple,isprivate);
+                        //if (submitvalue){Fluttertoast.showToast(msg: "submitted successfully",backgroundColor: Colors.green,timeInSecForIosWeb: 4);}
+                        //else{Fluttertoast.showToast(msg: "something went wrong",backgroundColor: Colors.red,timeInSecForIosWeb: 4);}}
+                      }}, child: Text("Post"),)
                     ])
             )))
 
@@ -271,4 +334,59 @@ String? _validateoption(String? value){
     return "* Required Field";
   }
   return null;
+}
+
+pushingtofirestore(question,List optionslist,time,multipleoption,publicview) async{
+  List options= [];
+  print(optionslist);
+  for (var items in optionslist) {
+    options.add(items.text);
+  }
+  print(options);
+  var user=await FirebaseAuth.instance.currentUser;
+  var userid= user?.uid;
+  var username = user?.displayName;
+  var photo=user?.photoURL;
+  print(options);
+  final DocumentReference newpoll= FirebaseFirestore.instance.collection("polls").doc();
+  try {
+    await newpoll.set({
+      "question": question,
+      "options": options,
+      "endtime":time,
+      "multipleopt":multipleoption,
+      "public":publicview,
+      "userid": userid,
+      "username": username,
+      "photo": photo
+    });
+    return true;
+  } on Exception catch(e){
+    return false;
+  }
+}
+
+showloadingdilog(BuildContext context,question, optionslist, time, multipleoption, publicview){
+  showDialog(context: context,
+      builder: (_)=>BasicDialogAlert(
+        title: Text("Hang On..."),
+        content: FutureBuilder (
+          future:pushingtofirestore(question, optionslist, time, multipleoption, publicview),
+          builder: (context,future){
+            if (future.hasData){
+              if (future.data==true){return Text("Successfully Posted",style:TextStyle(fontWeight: FontWeight.bold,color: Colors.green));}
+              else{return Text("Something went wrong",style: TextStyle(fontWeight: FontWeight.bold,color: Colors.red),);}
+            }
+            else if (future.hasData==false){
+              return CircularProgressIndicator(strokeWidth: 3,value:10);
+            }
+            else{return Text("An error Occured",style: TextStyle(fontWeight: FontWeight.bold,color: Colors.red),);}
+          },
+
+        ),
+        actions: [
+          TextButton(onPressed: (){}, child:Text("share")),
+          TextButton(onPressed: (){Navigator.of(context,rootNavigator: true).pop();}, child: Text("ok"))
+        ],
+      ));
 }

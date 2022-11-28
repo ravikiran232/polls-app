@@ -49,6 +49,9 @@ dependencies:
   flutter_gradient_colors:
   readmore:
   fluttertoast:
+  datetime_picker_formfield:
+  intl:
+  flutter_dialogs:
 
 
 dev_dependencies:
