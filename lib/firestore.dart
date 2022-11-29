@@ -1,8 +1,11 @@
 
 
 
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/services.dart';
 
 // signin function
@@ -95,4 +98,13 @@ read_post(String ids , key) async{
    print(e);
    return "something went wrong";
  }
+}
+
+//dynamic link generator
+firebasedynamiclink(path,documentid) async{
+  final dynamiclinkparams = DynamicLinkParameters(link: Uri.parse("https://openupra.page.link/"+path+"/"+documentid), uriPrefix: "https://openupra.page.link",
+    androidParameters: const AndroidParameters(packageName: "com.example.login.login"),);
+  try{final dynamiclink= await FirebaseDynamicLinks.instance.buildLink(dynamiclinkparams).timeout(Duration(seconds: 5));
+  return dynamiclink.normalizePath().toString();}
+      on TimeoutException catch(e){return "out";} on Exception catch(e){return false;}
 }

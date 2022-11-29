@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -13,9 +15,10 @@ import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:flutter_gradient_colors/flutter_gradient_colors.dart';
 import 'package:readmore/readmore.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
+import 'package:date_time_picker/date_time_picker.dart';
 import 'package:intl/intl.dart';
-import 'package:flutter_dialogs/flutter_dialogs.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'sql_queries.dart';
 import 'firestore.dart';
 import 'package:page_transition/page_transition.dart';
@@ -271,15 +274,17 @@ class _newpollpage extends State<newpollpage>{
                             child:Row(children: const [Icon(Icons.remove,color: Colors.red,), SizedBox(width: 5,),Text("remove Option",style: TextStyle(color: Colors.red),)],)
                         ),]),
                       SizedBox(height:8),
-                      DateTimeField(format:DateFormat("yyyy-MM-dd hh:mm:ss"),
+                      DateTimePicker(type:DateTimePickerType.dateTime,
                           onChanged: (dt) => datetime=dt,
                           decoration: InputDecoration(
                             labelText: "deadline",
                             border: OutlineInputBorder(borderRadius: BorderRadius.circular(15))
                           ),
-                          onShowPicker: (context,currentvalue){
-                        return showDatePicker(context: context, initialDate: DateTime.now(), firstDate: DateTime.now(), lastDate: DateTime.now().add(Duration(days:30)));
-                          }),
+                          initialDate: DateTime.now().add(Duration(days:1)),
+                      firstDate: DateTime.now() ,
+                      lastDate: DateTime.now().add(Duration(days:30)),),
+
+
                       Row(
                         children:[
                          Checkbox(
@@ -301,7 +306,9 @@ class _newpollpage extends State<newpollpage>{
                     });
                   }
                 ),Text("allow multiple option selection")]),
-                      ElevatedButton(onPressed: () async{
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),minimumSize: Size(100, 40),backgroundColor:Colors.indigo[400] ),
+                        onPressed: () async{
                         if(_key.currentState?.validate()==true){await showloadingdilog(context,questioncontroller.text,textcontrollers,datetime,ismultiple,isprivate);
                         //if (submitvalue){Fluttertoast.showToast(msg: "submitted successfully",backgroundColor: Colors.green,timeInSecForIosWeb: 4);}
                         //else{Fluttertoast.showToast(msg: "something went wrong",backgroundColor: Colors.red,timeInSecForIosWeb: 4);}}
@@ -314,6 +321,8 @@ class _newpollpage extends State<newpollpage>{
   }
 
 }
+
+
 
 navigatenewpoll (c){
   Navigator.of(c).push( MaterialPageRoute(builder: (context)=> newpollpage()));
@@ -338,16 +347,15 @@ String? _validateoption(String? value){
 
 pushingtofirestore(question,List optionslist,time,multipleoption,publicview) async{
   List options= [];
-  print(optionslist);
+
   for (var items in optionslist) {
     options.add(items.text);
   }
-  print(options);
+
   var user=await FirebaseAuth.instance.currentUser;
   var userid= user?.uid;
   var username = user?.displayName;
   var photo=user?.photoURL;
-  print(options);
   final DocumentReference newpoll= FirebaseFirestore.instance.collection("polls").doc();
   try {
     await newpoll.set({
@@ -359,34 +367,51 @@ pushingtofirestore(question,List optionslist,time,multipleoption,publicview) asy
       "userid": userid,
       "username": username,
       "photo": photo
-    });
-    return true;
-  } on Exception catch(e){
+    }).timeout(Duration(seconds: 6));
+    return newpoll.id;
+  }on TimeoutException catch(e){return "out";} on Exception catch(e){
     return false;
   }
 }
 
-showloadingdilog(BuildContext context,question, optionslist, time, multipleoption, publicview){
+showloadingdilog(BuildContext context,question, optionslist, time, multipleoption, bool publicview){
+  var document_id;
   showDialog(context: context,
-      builder: (_)=>BasicDialogAlert(
+      barrierDismissible: false,
+      //have to use dialog for customisation after finding better loading animations.
+      builder: (_)=>AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
         title: Text("Hang On..."),
         content: FutureBuilder (
           future:pushingtofirestore(question, optionslist, time, multipleoption, publicview),
           builder: (context,future){
             if (future.hasData){
-              if (future.data==true){return Text("Successfully Posted",style:TextStyle(fontWeight: FontWeight.bold,color: Colors.green));}
-              else{return Text("Something went wrong",style: TextStyle(fontWeight: FontWeight.bold,color: Colors.red),);}
+              if (future.data!=false && future.data!="out"){document_id=future.data;return Text(!publicview?"Successfully Posted":"Successfully Posted.Share your link by using share button",style:TextStyle(fontWeight: FontWeight.bold,color: Colors.green));}
+              if (future.data==false){return Text("Something went wrong",style: TextStyle(fontWeight: FontWeight.bold,color: Colors.red),);}
+              else{return Text("An error Occured",style: TextStyle(fontWeight: FontWeight.bold,color: Colors.red),);}
             }
             else if (future.hasData==false){
-              return CircularProgressIndicator(strokeWidth: 3,value:10);
+              return const SizedBox(width:10,height:30,child:
+              CircularProgressIndicator(strokeWidth: 2));
             }
+
             else{return Text("An error Occured",style: TextStyle(fontWeight: FontWeight.bold,color: Colors.red),);}
           },
 
         ),
         actions: [
-          TextButton(onPressed: (){}, child:Text("share")),
+          TextButton(onPressed: ()async{
+            //final MethodChannel _method = new MethodChannel("share");
+            print('hii***************');
+            var linkresult=await firebasedynamiclink("polls",document_id );
+            if (linkresult!=false || linkresult!="out"){
+              Share.share("express your opnion to the poll "+linkresult.toString());
+            }
+            else{Fluttertoast.showToast(msg: "unable to generate link",backgroundColor: Colors.red,timeInSecForIosWeb: 3);}
+
+          }, child:Text("share")),
           TextButton(onPressed: (){Navigator.of(context,rootNavigator: true).pop();}, child: Text("ok"))
         ],
       ));
 }
+

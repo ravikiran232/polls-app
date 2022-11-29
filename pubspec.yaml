@@ -49,9 +49,10 @@ dependencies:
   flutter_gradient_colors:
   readmore:
   fluttertoast:
-  datetime_picker_formfield:
+  date_time_picker:
   intl:
-  flutter_dialogs:
+  share_plus: ^4.5.0
+  firebase_dynamic_links:
 
 
 dev_dependencies:
