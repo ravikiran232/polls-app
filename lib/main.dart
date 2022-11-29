@@ -18,12 +18,12 @@ import 'newpost_page.dart';
 import 'voting_page.dart';
 
 void main() async {
-
-  runApp(votingpage());
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  runApp(votingpage());
+
 }
 
 errormessage (_color,text,c,{duration =2}){

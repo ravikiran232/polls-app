@@ -77,37 +77,8 @@ class _votingpage extends State<votingpage> with TickerProviderStateMixin{
         ] ),),
 
         body: TabBarView(
-          children: [
-            Column(
-                children:[InkWell(splashColor:Colors.lightGreenAccent,onTap:(){
-                  },
-                    child:Container(height:450,
-                child:Card(
-              margin: EdgeInsets.fromLTRB(15, 10, 15, 10),
-              elevation: 5,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-              child:
-              SingleChildScrollView(
-                  child:Column(
-                  children:[
-                    Padding(padding:EdgeInsets.fromLTRB(20, 20, 10, 10),
-                        child:Row(  children: [CircleAvatar(radius: 20,foregroundImage: NetworkImage("https://thumbs.dreamstime.com/b/girl-vector-icon-elements-mobile-concept-web-apps-thin-line-icons-website-design-development-app-premium-pack-glyph-flat-148592081.jpg"),),SizedBox(width: 5,),Text("user3467",style: TextStyle(color: Colors.black54),)],)),
-                    Padding(padding:EdgeInsets.fromLTRB(10, 1, 10, 15),child:const ReadMoreText("""Hi, this is the sample question of polling post in which users can cast the vote anonymously. Thank you,hi, this is the sample question of polling post in which users can cast the vote anonymously. Thank you""",trimLines: 3,
-                      colorClickableText: Colors.blue,
-                      trimMode: TrimMode.Line,
-                      trimCollapsedText: '..Read More',
-                      style: TextStyle(fontSize: 14,fontWeight: FontWeight.bold),
-                      trimExpandedText: ' Less',),),
-                  Column(
-                    children: values.map((items)=>optionforquestion()).toList()
-                  ),
-                   SizedBox(height: 3,),
-                    Row(children:[OutlinedButton(style: OutlinedButton.styleFrom(side: BorderSide(color: Colors.white)),onPressed: (){}, child: Icon(Icons.favorite,color: Colors.red,)), IconButton(onPressed: (){}, icon:Icon(Icons.share)),SizedBox(width: 120,),Text("votes : 330",style: TextStyle(color: Colors.black54),)
-                    ])
-                  ]))
-
-                )))]
-            ),
+          children:[
+            SingleChildScrollView(child:showpost()),
             Icon(Icons.timelapse,size:40),
             Icon(Icons.timelapse,size:40)
           ],
@@ -122,6 +93,8 @@ class _votingpage extends State<votingpage> with TickerProviderStateMixin{
 }
 
 class optionforquestion extends StatefulWidget{
+  optionforquestion(this.option);
+  var option;
   @override
   State<optionforquestion> createState()=> _optionforquestion();
 }
@@ -129,6 +102,7 @@ class _optionforquestion extends State<optionforquestion>{
   bool _value=false;
   @override
   Widget build(BuildContext context) {
+    var option=widget.option;
     return InkWell(onTap: (){setState(() {
       _value=!_value;
     });},
@@ -146,7 +120,7 @@ class _optionforquestion extends State<optionforquestion>{
               padding: EdgeInsets.symmetric(horizontal: 10),
               decoration: BoxDecoration(shape: BoxShape.rectangle,borderRadius: BorderRadius.circular(12),border: Border.all(color: _value?Colors.blue:Colors.black54),),
               child:
-              Row(children:[ _value?Icon(Icons.verified):SizedBox(width: 5,),Text("hi,this for yes option"),_value?Row(children:[SizedBox(width:15),Text("34%",style: TextStyle(fontWeight: FontWeight.bold),)]):SizedBox(height: 5,)]),
+              Row(children:[ _value?Icon(Icons.verified):SizedBox(width: 5,),Text(option.toString()),_value?Row(children:[SizedBox(width:15),Text("34%",style: TextStyle(fontWeight: FontWeight.bold),)]):SizedBox(height: 5,)]),
             )],
         ));
   }
@@ -309,7 +283,7 @@ class _newpollpage extends State<newpollpage>{
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),minimumSize: Size(100, 40),backgroundColor:Colors.indigo[400] ),
                         onPressed: () async{
-                        if(_key.currentState?.validate()==true){await showloadingdilog(context,questioncontroller.text,textcontrollers,datetime,ismultiple,isprivate);
+                        if(_key.currentState?.validate()==true){await showloadingdilog(context,questioncontroller.text,textcontrollers,DateTime.parse(datetime),ismultiple,isprivate);
                         //if (submitvalue){Fluttertoast.showToast(msg: "submitted successfully",backgroundColor: Colors.green,timeInSecForIosWeb: 4);}
                         //else{Fluttertoast.showToast(msg: "something went wrong",backgroundColor: Colors.red,timeInSecForIosWeb: 4);}}
                       }}, child: Text("Post"),)
@@ -322,6 +296,58 @@ class _newpollpage extends State<newpollpage>{
 
 }
 
+class showpost extends StatefulWidget{
+  @override
+  State<showpost> createState() => _showpost();
+}
+class _showpost extends State<showpost>{
+  @override
+  Widget build(BuildContext context){
+
+    return StreamBuilder(
+      stream: FirebaseFirestore.instance.collection("polls").where("endtime",isGreaterThanOrEqualTo: DateTime.now()).snapshots(),
+        builder: (context,streamer){
+        if (streamer.hasData){
+      return Column(
+        children: (streamer.data?.docs.map((items)=>pollpostdesign(context, items["question"], items["options"], 30, 400, items['username'])))!.toList(),
+
+    );}
+        if(!streamer.hasData){return Align(alignment: Alignment.center,child:SizedBox(height:40,width:40,child:CircularProgressIndicator(strokeWidth: 5,)));}
+        if(streamer.hasError){
+          return Text("An Error Occured",style:TextStyle(fontWeight: FontWeight.bold,color: Colors.red,fontSize: 20),textAlign:TextAlign.center,);
+        }
+        else{return Text("something went wrong",style:TextStyle(fontWeight: FontWeight.bold,color: Colors.red,fontSize: 20),textAlign:TextAlign.center,);}
+      });
+  }
+}
+Widget pollpostdesign(BuildContext context,String question,List options,likes,votes,username){
+    return InkWell(splashColor:Colors.lightGreenAccent,onTap:(){
+    },
+    child:Container(constraints: BoxConstraints(maxHeight:450 ),
+    child:Card(
+    margin: EdgeInsets.fromLTRB(15, 10, 15, 10),
+    elevation: 5,
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+    child: SingleChildScrollView(
+      child:
+              Column(
+              children: [
+                Padding(padding:EdgeInsets.fromLTRB(20, 20, 10, 10),
+                    child:Row(  children: [CircleAvatar(radius: 20,foregroundImage: NetworkImage("https://thumbs.dreamstime.com/b/girl-vector-icon-elements-mobile-concept-web-apps-thin-line-icons-website-design-development-app-premium-pack-glyph-flat-148592081.jpg"),),SizedBox(width: 5,),Text(username,style: TextStyle(color: Colors.black54),)],)),
+                Padding(padding:EdgeInsets.fromLTRB(10, 1, 10, 15),child:ReadMoreText(question,trimLines: 3,
+                  colorClickableText: Colors.blue,
+                  trimMode: TrimMode.Line,
+                  trimCollapsedText: '..Read More',
+                  style: TextStyle(fontSize: 14,fontWeight: FontWeight.bold),
+                  trimExpandedText: ' Less',),),
+                Column(
+                    children: options.map((items)=>optionforquestion(items)).toList()
+                ),
+                SizedBox(height: 3,),
+                Row(children:[OutlinedButton(style: OutlinedButton.styleFrom(side: BorderSide(color: Colors.white)),onPressed: (){}, child: Icon(Icons.favorite,color: Colors.red,)), IconButton(onPressed: (){}, icon:Icon(Icons.share)),SizedBox(width: 120,),Text("votes : "+votes.toString(),style: TextStyle(color: Colors.black54),)
+                ])
+              ],
+  )))));}
 
 
 navigatenewpoll (c){
@@ -414,4 +440,6 @@ showloadingdilog(BuildContext context,question, optionslist, time, multipleoptio
         ],
       ));
 }
+
+
 
