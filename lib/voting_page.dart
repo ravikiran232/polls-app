@@ -37,7 +37,7 @@ class votingpage extends StatefulWidget{
 }
 class _votingpage extends State<votingpage> with TickerProviderStateMixin{
   bool isslidingopened=false;
-  bool _value=false;
+  bool _ismultipleallowed=false;
   List values=[1,2,3,4];
 
   @override
@@ -93,25 +93,31 @@ class _votingpage extends State<votingpage> with TickerProviderStateMixin{
 }
 
 class optionforquestion extends StatefulWidget{
-  optionforquestion(this.option);
-  var option;
+  optionforquestion(this.documentid,this.option,this.multiple,this.index,this.uservoted,this.singletime,this.optionslength,this.votecountlist);
+  var option,documentid;
+  bool multiple;
+  int index,optionslength;
+   var uservoted;bool singletime; var votecountlist;
   @override
   State<optionforquestion> createState()=> _optionforquestion();
 }
 class _optionforquestion extends State<optionforquestion>{
-  bool _value=false;
   @override
   Widget build(BuildContext context) {
-    var option=widget.option;
-    return InkWell(onTap: (){setState(() {
-      _value=!_value;
+    bool _value=widget.uservoted[widget.index];
+    return InkWell(onTap: ()async{
+      var result=await onsamevotepress(widget.uservoted,widget.documentid, widget.multiple, widget.singletime, widget.index, widget.optionslength,widget.votecountlist);
+      print(result);
+      setState(() {
+        if (result==true){
+        widget.uservoted[widget.index]=!widget.uservoted[widget.index];}
     });},
         child:Stack(
           children:[
             AnimatedContainer(duration: Duration(milliseconds: 300),
               margin: const EdgeInsets.symmetric(vertical: 5,horizontal: 10),
               decoration: BoxDecoration(shape: BoxShape.rectangle,borderRadius: BorderRadius.circular(10),color: _value?Colors.blue.withOpacity(0.5):Colors.white,),
-              width: _value?100:50,
+              width: _value?100:0,
               height: 50,
             ),
             Container(
@@ -120,8 +126,9 @@ class _optionforquestion extends State<optionforquestion>{
               padding: EdgeInsets.symmetric(horizontal: 10),
               decoration: BoxDecoration(shape: BoxShape.rectangle,borderRadius: BorderRadius.circular(12),border: Border.all(color: _value?Colors.blue:Colors.black54),),
               child:
-              Row(children:[ _value?Icon(Icons.verified):SizedBox(width: 5,),Text(option.toString()),_value?Row(children:[SizedBox(width:15),Text("34%",style: TextStyle(fontWeight: FontWeight.bold),)]):SizedBox(height: 5,)]),
-            )],
+              Row(children:[ _value?Icon(Icons.verified):SizedBox(width: 5,),Text(widget.option.toString()),_value?Row(children:[SizedBox(width:15),Text("34%",style: TextStyle(fontWeight: FontWeight.bold),)]):SizedBox(height: 5,)]),
+            ),
+         ],
         ));
   }
 }
@@ -144,6 +151,7 @@ class _newpollpage extends State<newpollpage>{
   var datetime ;
   bool isprivate=false;
   bool ismultiple=false;
+  bool issingletime=true;
 
   @override
   Widget build(BuildContext context){
@@ -204,7 +212,7 @@ class _newpollpage extends State<newpollpage>{
                                     borderRadius: BorderRadius.circular(15)
                                   ),
                                   hintText: "Enter your option",
-                                      labelText: "Option 1",
+                                      labelText: "Option ${i+1}",
                                 ),
                               ));
                         },
@@ -249,6 +257,7 @@ class _newpollpage extends State<newpollpage>{
                         ),]),
                       SizedBox(height:8),
                       DateTimePicker(type:DateTimePickerType.dateTime,
+                          validator: _timevalidator,
                           onChanged: (dt) => datetime=dt,
                           decoration: InputDecoration(
                             labelText: "deadline",
@@ -278,12 +287,25 @@ class _newpollpage extends State<newpollpage>{
                     setState((){
                       ismultiple=!ismultiple;
                     });
+
                   }
                 ),Text("allow multiple option selection")]),
+                      SizedBox(height: 5,),
+                      Row(
+                          children:[
+                            Checkbox(
+                                value:issingletime,
+                                onChanged:(value){
+                                  setState((){
+                                    issingletime=!issingletime;
+                                  });
+
+                                }
+                            ),Text("only one vote per user")]),
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),minimumSize: Size(100, 40),backgroundColor:Colors.indigo[400] ),
                         onPressed: () async{
-                        if(_key.currentState?.validate()==true){await showloadingdilog(context,questioncontroller.text,textcontrollers,DateTime.parse(datetime),ismultiple,isprivate);
+                        if(_key.currentState?.validate()==true){await showloadingdilog(context,questioncontroller.text,textcontrollers,DateTime.parse(datetime),ismultiple,isprivate,issingletime);
                         //if (submitvalue){Fluttertoast.showToast(msg: "submitted successfully",backgroundColor: Colors.green,timeInSecForIosWeb: 4);}
                         //else{Fluttertoast.showToast(msg: "something went wrong",backgroundColor: Colors.red,timeInSecForIosWeb: 4);}}
                       }}, child: Text("Post"),)
@@ -306,10 +328,11 @@ class _showpost extends State<showpost>{
 
     return StreamBuilder(
       stream: FirebaseFirestore.instance.collection("polls").where("endtime",isGreaterThanOrEqualTo: DateTime.now()).snapshots(),
-        builder: (context,streamer){
+        builder: (context,streamer) {
+
         if (streamer.hasData){
       return Column(
-        children: (streamer.data?.docs.map((items)=>pollpostdesign(context, items["question"], items["options"], 30, 400, items['username'])))!.toList(),
+        children: (streamer.data?.docs.map((items)=>pollpostdesign(context,items.id, items["question"], items["options"], 30, items["votes"], items['username'],items["multipleopt"],items['singletime'])))!.toList(),
 
     );}
         if(!streamer.hasData){return Align(alignment: Alignment.center,child:SizedBox(height:40,width:40,child:CircularProgressIndicator(strokeWidth: 5,)));}
@@ -320,7 +343,8 @@ class _showpost extends State<showpost>{
       });
   }
 }
-Widget pollpostdesign(BuildContext context,String question,List options,likes,votes,username){
+Widget pollpostdesign(BuildContext context,documentid,String question,List options,likes,List votes,username,bool ismultiple,bool singletime) {
+  var _isuservoted;
     return InkWell(splashColor:Colors.lightGreenAccent,onTap:(){
     },
     child:Container(constraints: BoxConstraints(maxHeight:450 ),
@@ -330,6 +354,15 @@ Widget pollpostdesign(BuildContext context,String question,List options,likes,vo
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
     child: SingleChildScrollView(
       child:
+      FutureBuilder(
+  future:isuservoted(documentid,options.length).timeout(Duration(seconds: 5)),
+              builder:(context,future){
+    if(future.hasData){
+      int votecount= votes.reduce((value, element) => value+element);
+      print(votecount);
+      
+      _isuservoted=future.data;
+      return
               Column(
               children: [
                 Padding(padding:EdgeInsets.fromLTRB(20, 20, 10, 10),
@@ -341,13 +374,20 @@ Widget pollpostdesign(BuildContext context,String question,List options,likes,vo
                   style: TextStyle(fontSize: 14,fontWeight: FontWeight.bold),
                   trimExpandedText: ' Less',),),
                 Column(
-                    children: options.map((items)=>optionforquestion(items)).toList()
+                    children: options.asMap().entries.map((items)=>optionforquestion(documentid,items.value,ismultiple,items.key,_isuservoted!,singletime,options.length,votes)).toList()
                 ),
                 SizedBox(height: 3,),
-                Row(children:[OutlinedButton(style: OutlinedButton.styleFrom(side: BorderSide(color: Colors.white)),onPressed: (){}, child: Icon(Icons.favorite,color: Colors.red,)), IconButton(onPressed: (){}, icon:Icon(Icons.share)),SizedBox(width: 120,),Text("votes : "+votes.toString(),style: TextStyle(color: Colors.black54),)
+                Row(children:[OutlinedButton(style: OutlinedButton.styleFrom(side: BorderSide(color: Colors.white)),onPressed: (){}, child: Icon(Icons.favorite,color: Colors.red,)), IconButton(onPressed: (){}, icon:Icon(Icons.share)),SizedBox(width: 120,),Text("votes : "+votecount.toString(),style: TextStyle(color: Colors.black54),)
                 ])
               ],
-  )))));}
+                  );}
+    else if (future.hasData==false){
+      return  Container(constraints: BoxConstraints(minHeight:200 ),child:Center(child: CircularProgressIndicator(),)
+      );
+    }
+
+    else{return Text("An error Occured",style: TextStyle(fontWeight: FontWeight.bold,color: Colors.red),);}
+  })))));}
 
 
 navigatenewpoll (c){
@@ -371,11 +411,21 @@ String? _validateoption(String? value){
   return null;
 }
 
-pushingtofirestore(question,List optionslist,time,multipleoption,publicview) async{
-  List options= [];
+String? _timevalidator(String? value){
+  if(value!.length==0){
+    return "*Required Field";
+  }
+  return null;
+}
 
+pushingtofirestore(question,List optionslist,time,multipleoption,publicview,singletime) async{
+  List options= [];
+  List votes=[];
+  List response=[];
   for (var items in optionslist) {
     options.add(items.text);
+    votes.add(0);
+    response.add(false);
   }
 
   var user=await FirebaseAuth.instance.currentUser;
@@ -392,15 +442,19 @@ pushingtofirestore(question,List optionslist,time,multipleoption,publicview) asy
       "public":publicview,
       "userid": userid,
       "username": username,
-      "photo": photo
+      "photo": photo,
+      "like":0,
+      "votes":votes,
+      "singletime":singletime
     }).timeout(Duration(seconds: 6));
+    await FirebaseFirestore.instance.collection("polls").doc(newpoll.id).collection("users").doc(userid).set({"response":response});
     return newpoll.id;
   }on TimeoutException catch(e){return "out";} on Exception catch(e){
     return false;
   }
 }
 
-showloadingdilog(BuildContext context,question, optionslist, time, multipleoption, bool publicview){
+showloadingdilog(BuildContext context,question, optionslist, time, multipleoption, bool publicview,singletime){
   var document_id;
   showDialog(context: context,
       barrierDismissible: false,
@@ -409,7 +463,7 @@ showloadingdilog(BuildContext context,question, optionslist, time, multipleoptio
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
         title: Text("Hang On..."),
         content: FutureBuilder (
-          future:pushingtofirestore(question, optionslist, time, multipleoption, publicview),
+          future:pushingtofirestore(question, optionslist, time, multipleoption, publicview,singletime),
           builder: (context,future){
             if (future.hasData){
               if (future.data!=false && future.data!="out"){document_id=future.data;return Text(!publicview?"Successfully Posted":"Successfully Posted.Share your link by using share button",style:TextStyle(fontWeight: FontWeight.bold,color: Colors.green));}
@@ -428,7 +482,6 @@ showloadingdilog(BuildContext context,question, optionslist, time, multipleoptio
         actions: [
           TextButton(onPressed: ()async{
             //final MethodChannel _method = new MethodChannel("share");
-            print('hii***************');
             var linkresult=await firebasedynamiclink("polls",document_id );
             if (linkresult!=false || linkresult!="out"){
               Share.share("express your opnion to the poll "+linkresult.toString());

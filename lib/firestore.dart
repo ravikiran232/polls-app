@@ -2,11 +2,14 @@
 
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 // signin function
 Future<String> firebase_usersignin(useremail,userpassword) async {
@@ -107,4 +110,67 @@ firebasedynamiclink(path,documentid) async{
   try{final dynamiclink= await FirebaseDynamicLinks.instance.buildLink(dynamiclinkparams).timeout(Duration(seconds: 5));
   return dynamiclink.normalizePath().toString();}
       on TimeoutException catch(e){return "out";} on Exception catch(e){return false;}
+}
+
+// is User already voted the question or not? function.
+   isuservoted(documentid,length) async{
+  var user= await FirebaseAuth.instance.currentUser;
+  var _uid= user?.uid;
+  final value= await FirebaseFirestore.instance.collection("users").doc(_uid).collection("polls").doc(documentid).get();
+  if(value.exists){
+    return value["response"];
+  }
+  else{
+    return List.generate(length, (index) => false)  ;
+  }
+}
+
+// handling the user option press.
+onsamevotepress(List uservoted,documentid,_ismultiple,_issingletime,indexofpress,optionslength,votecountlist) async{
+  var user= await FirebaseAuth.instance.currentUser;
+  var _uid= user?.uid;
+  
+  if ( _ismultiple==true&&_issingletime==false){
+    List response=uservoted;
+    var _forincrement =response[indexofpress];
+    response[indexofpress]=!response.elementAt(indexofpress);
+    await FirebaseFirestore.instance.collection("users").doc(_uid).collection("polls").doc(documentid).update({"response":response});
+    if(_forincrement==false){votecountlist[indexofpress]=votecountlist[indexofpress]+1;}
+    if(_forincrement==true){votecountlist[indexofpress]=votecountlist[indexofpress]-1;}
+    await FirebaseFirestore.instance.collection("polls").doc(documentid).update({"votes":votecountlist});
+    return true;
+  }
+  if( _ismultiple==false && _issingletime==false){
+    List response=List.generate(optionslength, (index) => false);
+
+    var _forincrement =uservoted[indexofpress];
+    response[indexofpress]=!uservoted[indexofpress];
+    await FirebaseFirestore.instance.collection("users").doc(_uid).collection("polls").doc(documentid).update({"response":response});
+    
+    uservoted.asMap().entries.map((items){
+      print("run");
+      if(items.value==true && items.key!=indexofpress){
+      print("running0");
+      votecountlist[items.key]=votecountlist[items.key]-1;
+    }});
+    if(_forincrement==false){print("running1");votecountlist[indexofpress]=votecountlist[indexofpress]+1;}
+    if(_forincrement==true){print("running");votecountlist[indexofpress]=votecountlist[indexofpress]-1;}
+    await FirebaseFirestore.instance.collection("polls").doc(documentid).update({"votes":votecountlist});
+    return true;
+  }
+
+  // if(_isvoted==false){
+  //   List response=List.generate(optionslength,(i)=>false);
+  //   response[indexofpress]=true;
+  //   await FirebaseFirestore.instance.collection("users").doc(_uid).collection("polls").doc(documentid).set({"response":response});
+  //   var polldata=await FirebaseFirestore.instance.collection("polls").doc(documentid).get();
+  //   var _polldata=polldata["votes"];
+  //   _polldata[indexofpress]=_polldata[indexofpress]+1;
+  //   await FirebaseFirestore.instance.collection("polls").doc(documentid).update({"votes":_polldata});
+  //   return true;
+  // }
+  if (uservoted.contains(true)==true && _issingletime==true){
+    Fluttertoast.showToast(msg: "owner has allowed only single vote for a user",backgroundColor: Colors.red,timeInSecForIosWeb:4 );
+  }
+
 }
