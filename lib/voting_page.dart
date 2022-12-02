@@ -93,40 +93,40 @@ class _votingpage extends State<votingpage> with TickerProviderStateMixin{
 }
 
 class optionforquestion extends StatefulWidget{
-  optionforquestion(this.documentid,this.option,this.multiple,this.index,this.uservoted,this.singletime,this.optionslength,this.votecountlist);
+  optionforquestion(this.documentid,this.option,this.multiple,this.index,this.uservoteresponse,this.singletime,this.optionslength,this.votecountlist,this.totalvotecount,this.uservoted);
   var option,documentid;
   bool multiple;
   int index,optionslength;
-   var uservoted;bool singletime; var votecountlist;
+   List uservoteresponse;bool singletime; var votecountlist; int totalvotecount; bool uservoted;
   @override
   State<optionforquestion> createState()=> _optionforquestion();
 }
 class _optionforquestion extends State<optionforquestion>{
   @override
   Widget build(BuildContext context) {
-    bool _value=widget.uservoted[widget.index];
+    var size=MediaQuery.of(context).size.width*0.85;
+    bool _value=widget.uservoteresponse[widget.index];
     return InkWell(onTap: ()async{
-      var result=await onsamevotepress(widget.uservoted,widget.documentid, widget.multiple, widget.singletime, widget.index, widget.optionslength,widget.votecountlist);
-      print(result);
-      setState(() {
-        if (result==true){
-        widget.uservoted[widget.index]=!widget.uservoted[widget.index];}
-    });},
+     await onsamevotepress(widget.uservoteresponse,widget.documentid, widget.multiple, widget.singletime, widget.index, widget.optionslength,widget.votecountlist,widget.uservoted);
+
+   },
         child:Stack(
           children:[
             AnimatedContainer(duration: Duration(milliseconds: 300),
               margin: const EdgeInsets.symmetric(vertical: 5,horizontal: 10),
-              decoration: BoxDecoration(shape: BoxShape.rectangle,borderRadius: BorderRadius.circular(10),color: _value?Colors.blue.withOpacity(0.5):Colors.white,),
-              width: _value?100:0,
+              decoration: BoxDecoration(shape: BoxShape.rectangle,borderRadius: BorderRadius.circular(10),color: widget.uservoted?Colors.blue.withOpacity((widget.votecountlist[widget.index]/widget.totalvotecount)):Colors.white,),
+              width: widget.uservoted?size*(widget.votecountlist[widget.index]/widget.totalvotecount):0,
               height: 50,
+
             ),
             Container(
               height: 50,
+              width: size ,
               margin: EdgeInsets.symmetric(vertical: 5,horizontal: 10),
               padding: EdgeInsets.symmetric(horizontal: 10),
               decoration: BoxDecoration(shape: BoxShape.rectangle,borderRadius: BorderRadius.circular(12),border: Border.all(color: _value?Colors.blue:Colors.black54),),
               child:
-              Row(children:[ _value?Icon(Icons.verified):SizedBox(width: 5,),Text(widget.option.toString()),_value?Row(children:[SizedBox(width:15),Text("34%",style: TextStyle(fontWeight: FontWeight.bold),)]):SizedBox(height: 5,)]),
+              Row(children:[ _value?Icon(Icons.verified):SizedBox(width: 5,),Text(widget.option.toString()),widget.uservoted?Row(children:[SizedBox(width:15),Text(double.parse(((widget.votecountlist[widget.index]/widget.totalvotecount)*100).toStringAsFixed(1)).toString()+"%",style: TextStyle(fontWeight: FontWeight.bold),)]):SizedBox(height: 5,)]),
             ),
          ],
         ));
@@ -331,8 +331,9 @@ class _showpost extends State<showpost>{
         builder: (context,streamer) {
 
         if (streamer.hasData){
+         print("hi");
       return Column(
-        children: (streamer.data?.docs.map((items)=>pollpostdesign(context,items.id, items["question"], items["options"], 30, items["votes"], items['username'],items["multipleopt"],items['singletime'])))!.toList(),
+        children: (streamer.data?.docs.map((items)=>pollpostdesign(context,items.id, items["question"], items["options"], 30, items["votes"], items['username'],items["multipleopt"],items['singletime'],items["userid"])))!.toList(),
 
     );}
         if(!streamer.hasData){return Align(alignment: Alignment.center,child:SizedBox(height:40,width:40,child:CircularProgressIndicator(strokeWidth: 5,)));}
@@ -343,8 +344,8 @@ class _showpost extends State<showpost>{
       });
   }
 }
-Widget pollpostdesign(BuildContext context,documentid,String question,List options,likes,List votes,username,bool ismultiple,bool singletime) {
-  var _isuservoted;
+Widget pollpostdesign(BuildContext context,documentid,String question,List options,likes,List votes,username,bool ismultiple,bool singletime,userid) {
+  var _isuservoteresponse;
     return InkWell(splashColor:Colors.lightGreenAccent,onTap:(){
     },
     child:Container(constraints: BoxConstraints(maxHeight:450 ),
@@ -355,13 +356,14 @@ Widget pollpostdesign(BuildContext context,documentid,String question,List optio
     child: SingleChildScrollView(
       child:
       FutureBuilder(
-  future:isuservoted(documentid,options.length).timeout(Duration(seconds: 5)),
+  future:isuservoted(documentid,options.length),
               builder:(context,future){
     if(future.hasData){
       int votecount= votes.reduce((value, element) => value+element);
       print(votecount);
-      
-      _isuservoted=future.data;
+
+      _isuservoteresponse=future.data;
+      bool _isuservoted=future.data!.contains(true);
       return
               Column(
               children: [
@@ -374,10 +376,16 @@ Widget pollpostdesign(BuildContext context,documentid,String question,List optio
                   style: TextStyle(fontSize: 14,fontWeight: FontWeight.bold),
                   trimExpandedText: ' Less',),),
                 Column(
-                    children: options.asMap().entries.map((items)=>optionforquestion(documentid,items.value,ismultiple,items.key,_isuservoted!,singletime,options.length,votes)).toList()
+                    children: options.asMap().entries.map((items)=>optionforquestion(documentid,items.value,ismultiple,items.key,_isuservoteresponse!,singletime,options.length,votes,votecount,_isuservoted)).toList()
                 ),
                 SizedBox(height: 3,),
-                Row(children:[OutlinedButton(style: OutlinedButton.styleFrom(side: BorderSide(color: Colors.white)),onPressed: (){}, child: Icon(Icons.favorite,color: Colors.red,)), IconButton(onPressed: (){}, icon:Icon(Icons.share)),SizedBox(width: 120,),Text("votes : "+votecount.toString(),style: TextStyle(color: Colors.black54),)
+                Row(children:[OutlinedButton(style: OutlinedButton.styleFrom(side: BorderSide(color: Colors.white)),onPressed: (){}, child: Icon(Icons.favorite,color: Colors.red,)), IconButton(onPressed: ()async{
+                  var linkresult=await firebasedynamiclink("polls",documentid );
+                  if (linkresult!=false || linkresult!="out"){
+                    Share.share("express your opnion to the poll "+linkresult.toString());
+                  }
+                  else{Fluttertoast.showToast(msg: "unable to generate link",backgroundColor: Colors.red,timeInSecForIosWeb: 3);}
+                }, icon:Icon(Icons.share)),SizedBox(width: 120,),Text("votes : "+votecount.toString(),style: TextStyle(color: Colors.black54),)
                 ])
               ],
                   );}

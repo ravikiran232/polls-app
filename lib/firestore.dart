@@ -58,7 +58,6 @@ Future<bool> like_status(id) async{
   final user= await FirebaseAuth.instance.currentUser;
   var uid=user?.uid;
   final data=await FirebaseFirestore.instance.collection(id+"like").doc(uid).get();
-  print(data.exists.toString()+"fuck");
   if (data.exists){
     return true;
   }
@@ -113,7 +112,7 @@ firebasedynamiclink(path,documentid) async{
 }
 
 // is User already voted the question or not? function.
-   isuservoted(documentid,length) async{
+   Future<List> isuservoted(documentid,length) async{
   var user= await FirebaseAuth.instance.currentUser;
   var _uid= user?.uid;
   final value= await FirebaseFirestore.instance.collection("users").doc(_uid).collection("polls").doc(documentid).get();
@@ -126,35 +125,35 @@ firebasedynamiclink(path,documentid) async{
 }
 
 // handling the user option press.
-onsamevotepress(List uservoted,documentid,_ismultiple,_issingletime,indexofpress,optionslength,votecountlist) async{
+onsamevotepress(List uservoted,documentid,_ismultiple,_issingletime,indexofpress,optionslength,votecountlist,_isvoted) async{
   var user= await FirebaseAuth.instance.currentUser;
   var _uid= user?.uid;
   
   if ( _ismultiple==true&&_issingletime==false){
     List response=uservoted;
-    var _forincrement =response[indexofpress];
+    //var _forincrement =response[indexofpress];
     response[indexofpress]=!response.elementAt(indexofpress);
     await FirebaseFirestore.instance.collection("users").doc(_uid).collection("polls").doc(documentid).update({"response":response});
-    if(_forincrement==false){votecountlist[indexofpress]=votecountlist[indexofpress]+1;}
-    if(_forincrement==true){votecountlist[indexofpress]=votecountlist[indexofpress]-1;}
+    if(_isvoted==true && !response.contains(true)){votecountlist[indexofpress]=votecountlist[indexofpress]-1;}
+    if(_isvoted==false){votecountlist[indexofpress]=votecountlist[indexofpress]+1;}
     await FirebaseFirestore.instance.collection("polls").doc(documentid).update({"votes":votecountlist});
     return true;
   }
   if( _ismultiple==false && _issingletime==false){
     List response=List.generate(optionslength, (index) => false);
 
-    var _forincrement =uservoted[indexofpress];
+    //var _forincrement =uservoted[indexofpress];
     response[indexofpress]=!uservoted[indexofpress];
     await FirebaseFirestore.instance.collection("users").doc(_uid).collection("polls").doc(documentid).update({"response":response});
     
-    uservoted.asMap().entries.map((items){
-      print("run");
-      if(items.value==true && items.key!=indexofpress){
-      print("running0");
-      votecountlist[items.key]=votecountlist[items.key]-1;
-    }});
-    if(_forincrement==false){print("running1");votecountlist[indexofpress]=votecountlist[indexofpress]+1;}
-    if(_forincrement==true){print("running");votecountlist[indexofpress]=votecountlist[indexofpress]-1;}
+    // uservoted.asMap().entries.map((items){
+    //   print("run");
+    //   if(items.value==true && items.key!=indexofpress){
+    //   print("running0");
+    //   votecountlist[items.key]=votecountlist[items.key]-1;
+    // }});
+    if(_isvoted==true && !response.contains(true)){print("running1");votecountlist[indexofpress]=votecountlist[indexofpress]-1;}
+    if(_isvoted==false){print("running");votecountlist[indexofpress]=votecountlist[indexofpress]+1;}
     await FirebaseFirestore.instance.collection("polls").doc(documentid).update({"votes":votecountlist});
     return true;
   }

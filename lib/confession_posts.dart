@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/services.dart';
@@ -20,6 +21,15 @@ import 'newpost_page.dart';
 import 'voting_page.dart';
 import 'main.dart';
 
+class Myconfession extends StatelessWidget{
+  @override
+  Widget build(BuildContext context){
+    return MaterialApp(
+      home: Myconfessionpage(),
+    );
+  }
+}
+
 class Myconfessionpage extends StatefulWidget{
   @override
   State<Myconfessionpage> createState() => _Myconfessionpage();
@@ -32,16 +42,23 @@ class _Myconfessionpage extends State<Myconfessionpage>{
     await FirebaseFirestore.instance.collection("users").doc(user?.uid).get().then((item)=> _college=item['college']);
     return "ok";
   }
-
+  @override
+  initState() {
+    // TODO: implement initState
+    super.initState();
+    print("init");
+    WidgetsBinding.instance.addPostFrameCallback((_) async{
+     dynamiclinkhandler(context);
+    });
+  }
   @override
   Widget build(BuildContext context){
     if (_college==null){
       college();
       print(_college);}
     //print (_college);
-    return MaterialApp(
-
-        home: Scaffold(
+    return  Builder(
+        builder:(context)=>Scaffold(
           //backgroundColor: Colors.white,
           appBar: AppBar(
             backgroundColor: Colors.blueAccent,

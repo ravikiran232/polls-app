@@ -1,6 +1,7 @@
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/services.dart';
@@ -22,7 +23,15 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  runApp(votingpage());
+  final PendingDynamicLinkData? initialLink = await FirebaseDynamicLinks.instance.getInitialLink();
+  print(initialLink);
+  if (initialLink!=null){
+    final Uri deepLink = initialLink.link;
+    print(deepLink);
+    List pathfragments= deepLink.path.split("/");
+    runApp(votingpage());
+  }
+  runApp(Myconfession());
 
 }
 
@@ -108,6 +117,21 @@ class  spalshscreen  extends StatelessWidget {
   }
 }
 
+ dynamiclinkhandler(c) async {
+
+  await FirebaseDynamicLinks.instance.onLink.listen((event) {
+    if(event!=null){
+    List pathfragments = event.link.path.split("/");
+    if (pathfragments[1]=="polls"){
+    Navigator.of(c).push(MaterialPageRoute(builder: (c)=>votingpage()));}
+    if (pathfragments[1]=="confession"){
+      Navigator.of(c).push(MaterialPageRoute(builder: (c)=>Myconfession()));}
+    }}
+  );
+
+
+
+}
 
 
 
