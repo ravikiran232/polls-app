@@ -5,6 +5,7 @@ import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/services.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'firebase_options.dart';
 import 'package:animated_splash_screen/animated_splash_screen.dart';
 
@@ -36,10 +37,10 @@ void main() async {
 }
 
 errormessage (_color,text,c,{duration =2}){
-  return ScaffoldMessenger.of(c).showSnackBar(SnackBar(content: Text(text),
-    duration: Duration(seconds: duration),
-    backgroundColor: _color,)
-  );
+  return Fluttertoast.showToast(msg:  text,
+    timeInSecForIosWeb: duration,
+    backgroundColor: _color,);
+
 }
 
 popupmenu (c,id){
@@ -79,7 +80,7 @@ popupmenu (c,id){
                     Future.delayed(Duration(seconds:1 ));
                     Navigator.of(c,rootNavigator: true).pop();} on Exception catch(e){errormessage(Colors.red, "something went wrong", c);}
                   },
-                  child: const Text('OK'),
+                  child: const Text('OK',style: TextStyle(color: Colors.red),),
                 ),
               ],
             )
@@ -119,11 +120,11 @@ class  spalshscreen  extends StatelessWidget {
 
  dynamiclinkhandler(c) async {
 
-  await FirebaseDynamicLinks.instance.onLink.listen((event) {
+   await FirebaseDynamicLinks.instance.onLink.listen((event) {
     if(event!=null){
     List pathfragments = event.link.path.split("/");
     if (pathfragments[1]=="polls"){
-    Navigator.of(c).push(MaterialPageRoute(builder: (c)=>votingpage()));}
+    Navigator.of(c).push(MaterialPageRoute(builder: (c)=>individualpollpage(pathfragments[2],true)));}
     if (pathfragments[1]=="confession"){
       Navigator.of(c).push(MaterialPageRoute(builder: (c)=>Myconfession()));}
     }}

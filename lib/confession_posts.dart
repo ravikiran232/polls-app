@@ -46,7 +46,6 @@ class _Myconfessionpage extends State<Myconfessionpage>{
   initState() {
     // TODO: implement initState
     super.initState();
-    print("init");
     WidgetsBinding.instance.addPostFrameCallback((_) async{
      dynamiclinkhandler(context);
     });

@@ -42,7 +42,7 @@ dependencies:
   show_more_text_popup: ^0.3.0
   sql_conn: ^0.0.3
   cloud_firestore:
-  url_launcher:
+  url_launcher: ^6.1.5
   page_transition: ^2.0.9
   flutter_polls: ^0.1.0
   sliding_up_panel:
@@ -53,6 +53,7 @@ dependencies:
   intl:
   share_plus: ^4.5.0
   firebase_dynamic_links:
+  lottie:
 
 
 dev_dependencies:
@@ -76,7 +77,8 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
-
+  assets:
+    - assets/lottiefiles/
   # To add assets to your application, add an assets section, like this:
   # assets:
   #   - images/a_dot_burr.jpeg

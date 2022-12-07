@@ -10,6 +10,7 @@ import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:login/main.dart';
 
 // signin function
 Future<String> firebase_usersignin(useremail,userpassword) async {
@@ -65,6 +66,7 @@ Future<bool> like_status(id) async{
 }
 
 // user liking or disliking the post.
+// it is depreciated due to wrong database management update it with newonlikepress function for faster and better management
 onlikepress(liked ,id) async {
   final user =await FirebaseAuth.instance.currentUser;
   var uid=user?.uid;
@@ -74,6 +76,23 @@ onlikepress(liked ,id) async {
   }else{
     await FirebaseFirestore.instance.collection("posts").doc(id).update({"likes":FieldValue.increment(1)});
     await FirebaseFirestore.instance.collection(id+"like").doc(uid).set({"status":true});
+  }
+}
+
+newonlikepress(documentid,likestatus,userid,postfeature, bool isfieldavailable) async{
+  if(likestatus==true){
+    try{
+    await FirebaseFirestore.instance.collection(postfeature).doc(documentid).update({"like":FieldValue.increment(-1)});
+    await FirebaseFirestore.instance.collection("users").doc(userid).collection(postfeature).doc(documentid).update({"like":false});} on Exception catch(e){Fluttertoast.showToast(msg: "something went wrong",timeInSecForIosWeb: 3,backgroundColor: Colors.red);}
+  }
+  else{
+    try{
+    await FirebaseFirestore.instance.collection(postfeature).doc(documentid).update({"like":FieldValue.increment(1)});
+    if(isfieldavailable){
+    await FirebaseFirestore.instance.collection("users").doc(userid).collection(postfeature).doc(documentid).update({"like":true});}
+    else{
+      await FirebaseFirestore.instance.collection("users").doc(userid).collection(postfeature).doc(documentid).set({"like":true});
+    }}on Exception catch(e){ errormessage(Colors.red, "something went wrong", "hi");}
   }
 }
 
@@ -125,36 +144,44 @@ firebasedynamiclink(path,documentid) async{
 }
 
 // handling the user option press.
-onsamevotepress(List uservoted,documentid,_ismultiple,_issingletime,indexofpress,optionslength,votecountlist,_isvoted) async{
+onsamevotepress(List uservoted,documentid,_ismultiple,_issingletime,indexofpress,optionslength,votecountlist,_isvoted,bool isfieldavailable) async{
   var user= await FirebaseAuth.instance.currentUser;
   var _uid= user?.uid;
   
   if ( _ismultiple==true&&_issingletime==false){
     List response=uservoted;
-    //var _forincrement =response[indexofpress];
+    var _forincrement =response[indexofpress];
     response[indexofpress]=!response.elementAt(indexofpress);
-    await FirebaseFirestore.instance.collection("users").doc(_uid).collection("polls").doc(documentid).update({"response":response});
-    if(_isvoted==true && !response.contains(true)){votecountlist[indexofpress]=votecountlist[indexofpress]-1;}
-    if(_isvoted==false){votecountlist[indexofpress]=votecountlist[indexofpress]+1;}
+
+    if(_forincrement==true){votecountlist[indexofpress]=votecountlist[indexofpress]-1;}
+    if(_forincrement==false){votecountlist[indexofpress]=votecountlist[indexofpress]+1;}
+    try{
     await FirebaseFirestore.instance.collection("polls").doc(documentid).update({"votes":votecountlist});
+    if(isfieldavailable){
+    await FirebaseFirestore.instance.collection("users").doc(_uid).collection("polls").doc(documentid).update({"response":response});}
+    if(!isfieldavailable){
+      await FirebaseFirestore.instance.collection("users").doc(_uid).collection("polls").doc(documentid).set({"response":response});
+    }} on Exception catch (e){errormessage(Colors.red, "something went wrong", "context");}
     return true;
   }
   if( _ismultiple==false && _issingletime==false){
     List response=List.generate(optionslength, (index) => false);
 
-    //var _forincrement =uservoted[indexofpress];
+    var _forincrement =uservoted[indexofpress];
     response[indexofpress]=!uservoted[indexofpress];
-    await FirebaseFirestore.instance.collection("users").doc(_uid).collection("polls").doc(documentid).update({"response":response});
-    
-    // uservoted.asMap().entries.map((items){
-    //   print("run");
-    //   if(items.value==true && items.key!=indexofpress){
-    //   print("running0");
-    //   votecountlist[items.key]=votecountlist[items.key]-1;
-    // }});
-    if(_isvoted==true && !response.contains(true)){print("running1");votecountlist[indexofpress]=votecountlist[indexofpress]-1;}
-    if(_isvoted==false){print("running");votecountlist[indexofpress]=votecountlist[indexofpress]+1;}
+
+    if(uservoted.contains(true) && uservoted.indexOf(true)!=indexofpress){
+      votecountlist[uservoted.indexOf(true)]=votecountlist[uservoted.indexOf(true)]-1;
+    }
+    if(_forincrement==true){votecountlist[indexofpress]=votecountlist[indexofpress]-1;}
+    if(_forincrement==false){votecountlist[indexofpress]=votecountlist[indexofpress]+1;}
+    try{
     await FirebaseFirestore.instance.collection("polls").doc(documentid).update({"votes":votecountlist});
+    if(isfieldavailable){
+      await FirebaseFirestore.instance.collection("users").doc(_uid).collection("polls").doc(documentid).update({"response":response});}
+    if(!isfieldavailable){
+      await FirebaseFirestore.instance.collection("users").doc(_uid).collection("polls").doc(documentid).set({"response":response});
+    }}on Exception catch(e){errormessage(Colors.red, "something went wrong", "context");}
     return true;
   }
 
