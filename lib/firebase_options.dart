@@ -17,10 +17,7 @@ import 'package:flutter/foundation.dart'
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
-      throw UnsupportedError(
-        'DefaultFirebaseOptions have not been configured for web - '
-        'you can reconfigure this by running the FlutterFire CLI again.',
-      );
+      return web;
     }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
@@ -28,10 +25,7 @@ class DefaultFirebaseOptions {
       case TargetPlatform.iOS:
         return ios;
       case TargetPlatform.macOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for macos - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return macos;
       case TargetPlatform.windows:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for windows - '
@@ -49,11 +43,23 @@ class DefaultFirebaseOptions {
     }
   }
 
+  static const FirebaseOptions web = FirebaseOptions(
+    apiKey: 'AIzaSyDFyNgmKsv9xrhxg0GaeDcs6mJCioZzJ0M',
+    appId: '1:773338812560:web:34233a2a385b7a50be4815',
+    messagingSenderId: '773338812560',
+    projectId: 'fir-integration-c6fab',
+    authDomain: 'fir-integration-c6fab.firebaseapp.com',
+    databaseURL: 'https://fir-integration-c6fab-default-rtdb.asia-southeast1.firebasedatabase.app',
+    storageBucket: 'fir-integration-c6fab.appspot.com',
+    measurementId: 'G-PE6B6T42ZD',
+  );
+
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyBYAVyh4rf6bq7cNMjY__yrfQMoO0RdbGM',
     appId: '1:773338812560:android:dbb63f4ac2c20061be4815',
     messagingSenderId: '773338812560',
     projectId: 'fir-integration-c6fab',
+    databaseURL: 'https://fir-integration-c6fab-default-rtdb.asia-southeast1.firebasedatabase.app',
     storageBucket: 'fir-integration-c6fab.appspot.com',
   );
 
@@ -62,6 +68,18 @@ class DefaultFirebaseOptions {
     appId: '1:773338812560:ios:1e3f0d0dc3dd0da1be4815',
     messagingSenderId: '773338812560',
     projectId: 'fir-integration-c6fab',
+    databaseURL: 'https://fir-integration-c6fab-default-rtdb.asia-southeast1.firebasedatabase.app',
+    storageBucket: 'fir-integration-c6fab.appspot.com',
+    iosClientId: '773338812560-m0138hefb7ian2i7of98uru79pfu5e5o.apps.googleusercontent.com',
+    iosBundleId: 'com.example.login.login',
+  );
+
+  static const FirebaseOptions macos = FirebaseOptions(
+    apiKey: 'AIzaSyAjGydRgsZ-kYzXN-0rb0SDnlAYOOEjOmU',
+    appId: '1:773338812560:ios:1e3f0d0dc3dd0da1be4815',
+    messagingSenderId: '773338812560',
+    projectId: 'fir-integration-c6fab',
+    databaseURL: 'https://fir-integration-c6fab-default-rtdb.asia-southeast1.firebasedatabase.app',
     storageBucket: 'fir-integration-c6fab.appspot.com',
     iosClientId: '773338812560-m0138hefb7ian2i7of98uru79pfu5e5o.apps.googleusercontent.com',
     iosBundleId: 'com.example.login.login',

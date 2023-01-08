@@ -18,6 +18,7 @@ import 'confession_posts.dart';
 import 'posts_page.dart';
 import 'newpost_page.dart';
 import 'voting_page.dart';
+import "my_polls.dart";
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -32,7 +33,7 @@ void main() async {
     List pathfragments= deepLink.path.split("/");
     runApp(votingpage());
   }
-  runApp(Myconfession());
+  runApp(voting());
 
 }
 
@@ -58,6 +59,8 @@ popupmenu (c,id){
             value: 1,
             child: Text("contact us"),
           ),
+
+          const PopupMenuItem(child: Text("my polls"),value: 2,)
 
         ];
       },
@@ -92,6 +95,9 @@ popupmenu (c,id){
           }on Exception catch(e){
             throw "something went wrong";
           }
+        }
+        else if(value==2){
+          Navigator.of(c).push(MaterialPageRoute(builder: (c)=>mypolls()));
         }
       }
   );
@@ -130,9 +136,9 @@ class  spalshscreen  extends StatelessWidget {
     }}
   );
 
-
-
 }
+
+
 
 
 

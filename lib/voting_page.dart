@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
+import 'package:login/my_polls.dart';
 import 'firebase_options.dart';
 import 'package:animated_splash_screen/animated_splash_screen.dart';
 import 'package:show_more_text_popup/show_more_text_popup.dart';
@@ -42,47 +43,113 @@ class voting extends StatelessWidget{
   }
 }
 class votingpage extends StatefulWidget{
+
+  int livecount; int endcount;
+
+  votingpage({super.key, this.livecount =3,this.endcount =3});
   @override
   State<votingpage> createState() => _votingpage();
 }
 class _votingpage extends State<votingpage> with TickerProviderStateMixin{
   bool isslidingopened=false;
-  bool _ismultipleallowed=false;
   List values=[1,2,3,4];
-  ScrollController trendingcontroller=ScrollController();
   ScrollController live =ScrollController();
   ScrollController ended = ScrollController();
-  StreamController _streamController=StreamController();
-  int livecount=4,endcount=4;
+  StreamController<QuerySnapshot> _lstreamController=StreamController(),_endstream=StreamController(),_trendstream=StreamController();
+  // int livecount=3,endcount=3;
   late String college;
+  late List<QueryDocumentSnapshot> _trendingfeed,_livefeed,_endedfeed;
+  late StreamSubscription<QuerySnapshot>  __trendingfeed,__livefeed,__endedfeed;
+  late List<QueryDocumentSnapshot> document;
+  bool error =false; bool trendloading=true;bool liveloading=true; bool endedloading=true; bool _lazyloading=false;
+
+
+  getdata({required StreamSubscription<QuerySnapshot> streamsubscription,required List<QueryDocumentSnapshot> streamer ,required bool live}) async{
+     print("getdata is running perfectly");
+     print("${widget.endcount}");
+    print(streamsubscription.isPaused);
+    if(!live){
+     __endedfeed.cancel();
+    __endedfeed= FirebaseFirestore.instance.collection("polls").where("endtime",isLessThanOrEqualTo: DateTime.now()).limit(widget.endcount).snapshots().listen((event) {
+      setState(() {
+        print("docs length is ${event.docs.length}");
+        _endedfeed=event.docs;
+      });
+    });
+    }
+    else{
+      __livefeed.cancel();
+      __livefeed= FirebaseFirestore.instance.collection("polls").where("endtime",isGreaterThanOrEqualTo: DateTime.now()).limit(widget.livecount).snapshots().listen((event) {
+        setState(() {
+          print("docs length is ${event.docs.length}");
+          _livefeed=event.docs;
+        });
+      });
+    }
+
+  }
 
   @override
-  void initState() async{
+  void initState() {
     // TODO: implement initState
+
+    dynamiclinkhandler(context); // for handling dynamiclinks of firebase
+
 
     live.addListener(() {
     if(live.position.atEdge){
       if(live.position.pixels==0){}else{
         setState(() {
-        livecount+=2;
-      });}
+        widget.livecount+=2;
+        _lazyloading=true;
+        __livefeed.cancel();
+      });
+        getdata(streamsubscription: __livefeed, streamer: _livefeed,live: true);
+       }
     }});
+
     ended.addListener(() {
       if(ended.position.atEdge){
         if(ended.position.pixels==0){}
         else{
         setState(() {
-          endcount+=2;
+          widget.endcount+=2;
+          _lazyloading=true;
+          __endedfeed.cancel();
         });
+        getdata(streamsubscription: __endedfeed, streamer: _endedfeed,live: false);
       }}
     });
 
-    dynamiclinkhandler(context);
-
+    //  trendingfeed = FirebaseFirestore.instance.collection("polls").where("endtime",isGreaterThanOrEqualTo: DateTime.now()).limit(3).snapshots();
+    // livefeed=FirebaseFirestore.instance.collection("polls").where("endtime",isGreaterThanOrEqualTo: DateTime.now()).limit(livecount).snapshots();
+    //  endedfeed=FirebaseFirestore.instance.collection("polls").where("endtime",isLessThanOrEqualTo: DateTime.now()).limit(endcount).snapshots();
     // var uid= FirebaseAuth.instance.currentUser?.uid;
     // var data=await FirebaseFirestore.instance.collection("users").doc(uid).get();
     // college=data["college"];
 
+    __trendingfeed=FirebaseFirestore.instance.collection("polls").where("endtime",isGreaterThanOrEqualTo: DateTime.now()).limit(3).snapshots().listen((event) {
+      setState(() {
+        _trendingfeed=event.docs ;
+        trendloading=false;
+      });},onError: (e){setState(() {
+      error=true;
+    });});
+    __livefeed=FirebaseFirestore.instance.collection("polls").where("endtime",isGreaterThanOrEqualTo: DateTime.now()).limit(3).snapshots().listen((event) {
+      setState(() {
+        _livefeed=event.docs ;
+        liveloading=false;
+      });},onError: (e){setState(() {
+        error=true;
+      });});
+    __endedfeed=FirebaseFirestore.instance.collection("polls").where("endtime",isLessThanOrEqualTo: DateTime.now()).limit(3).snapshots().listen((event) {
+      setState(() {
+
+       _endedfeed=event.docs ;
+        endedloading=false;
+      });},onError: (e){setState(() {
+      error=true;
+    });});
     super.initState();
 
   }
@@ -92,11 +159,14 @@ class _votingpage extends State<votingpage> with TickerProviderStateMixin{
     // TODO: implement dispose
     live.removeListener(() { });
     ended.removeListener(() { });
-    _streamController.close();
+    __livefeed.cancel();
+    __endedfeed.cancel();
+    __trendingfeed.cancel();
     super.dispose();
   }
   @override
   Widget build(BuildContext context){
+    print("widget refreshed");
     return  Builder(
         builder:(context)=>
       DefaultTabController(
@@ -132,14 +202,14 @@ class _votingpage extends State<votingpage> with TickerProviderStateMixin{
         body: TabBarView(
           children:[
             SingleChildScrollView(
-                child:showpost(fetchcondition: FirebaseFirestore.instance.collection("polls").where("endtime",isGreaterThanOrEqualTo: DateTime.now()).limit(3),trending: true,streamController: _streamController,)),
+                child:showpost(trending: true,fetchcondition:!trendloading? _trendingfeed:null,error: error,)),
 
             SingleChildScrollView(
               controller: live,
-                child:showpost(fetchcondition: FirebaseFirestore.instance.collection("polls").where("endtime",isGreaterThanOrEqualTo: DateTime.now()).limit(livecount),streamController: _streamController,)),
+                child:showpost(fetchcondition:!liveloading? _livefeed:null,error: error,lazyloading:_lazyloading,livecount:widget.livecount,endcount:null)),
             SingleChildScrollView(
               controller: ended,
-                child:showpost(fetchcondition: FirebaseFirestore.instance.collection("polls").where("endtime",isLessThan: DateTime.now()).limit(endcount),ended: true,streamController: _streamController,))
+                child:showpost(ended: true,fetchcondition:!endedloading? _endedfeed:null,error: error,lazyloading:_lazyloading,endcount:widget.endcount,livecount:null))
           ],
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
@@ -400,58 +470,90 @@ class _newpollpage extends State<newpollpage>{
 
 }
 
-class showpost extends StatefulWidget{
-  showpost({this.documentid:null,required this.fetchcondition,this.trending:false,this.ended:false,this.optionslengthlarge:false,required this.streamController});
-  var documentid; bool trending; bool ended;
-  Query fetchcondition; bool optionslengthlarge;
-  StreamController streamController;
+// class showpost extends StatefulWidget{
+//   showpost({this.documentid:null,this.trending:false,this.ended:false,this.optionslengthlarge:false,required this.streamController,required this.error,this.lazyloading:false,this.livecount:null,this.endcount:null});
+//   var documentid; bool trending; bool ended; bool lazyloading;
+//   // List<QueryDocumentSnapshot>? fetchcondition;
+//   bool optionslengthlarge;
+//   StreamController<QuerySnapshot> streamController; bool error; var livecount,endcount;
+//
+//   @override
+//   State<showpost> createState() => _showpost();
+// }
+Widget showpost({documentid:null,trending:false,ended:false,optionslengthlarge:false,required List<QueryDocumentSnapshot>? fetchcondition, DocumentSnapshot? individualfetch, required error,lazyloading:false,livecount:null,endcount:null,mypolls:false}) {
+   StreamSubscription<QuerySnapshot>?  __livefeed,__endedfeed;
+   late StreamController<QuerySnapshot> _streamcontroller;
+  // @override
+  // void didUpdateWidget(covariant showpost oldWidget) {
+  //   // TODO: implement didUpdateWidget
+  //   super.didUpdateWidget(oldWidget);
+  //   print(widget.streamController.hasListener);
+  //
+  //   print("running");
+  //   if(oldWidget.livecount!=widget.livecount && widget.lazyloading==true&&widget.endcount==null){
+  //     print("1");
+  //     __livefeed?.cancel();
+  //     __livefeed=FirebaseFirestore.instance.collection("polls").where("endtime",isGreaterThanOrEqualTo: DateTime.now()).limit(3).snapshots().listen((event) {
+  //       widget.streamController.sink.add(event);
+  //     });
+  //   }
+  //   if( widget.lazyloading==true&&widget.livecount==null){
+  //     print("@");
+  //     print("${widget.endcount}");
+  //      __endedfeed?.cancel();
+  //     __endedfeed=FirebaseFirestore.instance.collection("polls").where("endtime",isLessThanOrEqualTo: DateTime.now()).limit(widget.endcount).snapshots().listen((event) {
+  //
+  //       setState(() {
+  //         widget.streamController.sink.add(event);
+  //         widget.lazyloading=false;
+  //
+  //       });
+  //
+  //     });
+  //   }
+  //
+  // }
 
-  @override
-  State<showpost> createState() => _showpost();
-}
-class _showpost extends State<showpost>{
-  @override
-  Widget build(BuildContext context){
-    if(widget.documentid==null){
-    return StreamBuilder(
-      stream: widget.fetchcondition.snapshots(),
-        builder: (context,streamer) {
-        if (streamer.hasData){
-         streamer.data!.metadata.isFromCache?print("from cache"):print("from internet");
+    if(documentid==null){
+    return Builder(
+        builder: (context) {
+
+          if(!error &&fetchcondition!=null){
+            List<Widget> _widget=((fetchcondition.map((items){
+              print(items.metadata.isFromCache?"From local":"from internet");
+              return pollpostdesign(context,items.id, items["question"], items["options"],items["like"], items["votes"], items['username'],items["multipleopt"],items['singletime'],items["userid"],trending,ended,items["endtime"],false,mypolls);})))!.toList();
+            _widget.add(lazyloading?CircularProgressIndicator(strokeWidth: 3,):SizedBox.shrink());
       return Column(
-        children: ((streamer.data?.docs.map((items)=>pollpostdesign(context,items.id, items["question"], items["options"],items["like"], items["votes"], items['username'],items["multipleopt"],items['singletime'],items["userid"],widget.trending,widget.ended,items["endtime"],false))))!.toList(),
+        children: _widget
 
     );}
-        if(!streamer.hasData){return Align(alignment: Alignment.center,child:SizedBox(height:40,width:40,child:CircularProgressIndicator(strokeWidth: 5,)));}
-        if(streamer.hasError){
-          return const Text("An Error Occured",style:TextStyle(fontWeight: FontWeight.bold,color: Colors.red,fontSize: 20),textAlign:TextAlign.center,);
-        }
+        // if(!streamer.hasData){return Align(alignment: Alignment.center,child:SizedBox(height:40,width:40,child:CircularProgressIndicator(strokeWidth: 5,)));}
+        // if(streamer.hasError){
+        //   return const Text("An Error Occured",style:TextStyle(fontWeight: FontWeight.bold,color: Colors.red,fontSize: 20),textAlign:TextAlign.center,);
+        // }
         else{return const Text("something went wrong",style:TextStyle(fontWeight: FontWeight.bold,color: Colors.red,fontSize: 20),textAlign:TextAlign.center,);}
       });
   }
     else{
-      return StreamBuilder(
-          stream: FirebaseFirestore.instance.collection("polls").doc(widget.documentid).snapshots(),
-          builder: (context,streamer) {
-
-            if (streamer.hasData){
-              streamer.data!.metadata.isFromCache?print("from cache"):print("from internet");
-              var items=streamer.data!;
+      return Builder(
+          builder: (context) {
+             if(individualfetch!=null) {//streamer.data!.metadata.isFromCache?print("from cache"):print("from internet");
+              var items=individualfetch!;
               return Column(
-                children: [pollpostdesign(context,widget.documentid, items["question"], items["options"], items["like"], items["votes"], items['username'],items["multipleopt"],items['singletime'],items["userid"],false,widget.ended,items["endtime"],widget.optionslengthlarge)]);
+                children: [pollpostdesign(context,documentid, items["question"], items["options"], items["like"], items["votes"], items['username'],items["multipleopt"],items['singletime'],items["userid"],false,ended,items["endtime"],optionslengthlarge,mypolls)]);
 
               }
-            if(!streamer.hasData){return Align(alignment: Alignment.center,child:SizedBox(height:40,width:40,child:CircularProgressIndicator(strokeWidth: 5,)));}
-            if(streamer.hasError){
-              return const Text("An Error Occured",style:TextStyle(fontWeight: FontWeight.bold,color: Colors.red,fontSize: 20),textAlign:TextAlign.center,);
-            }
+             if (individualfetch==null){
+               return const Center(child: CircularProgressIndicator(),);
+             }
+
             else{return const Text("something went wrong",style:TextStyle(fontWeight: FontWeight.bold,color: Colors.red,fontSize: 20),textAlign:TextAlign.center,);}
           });
 
     }
   }
-}
-Widget pollpostdesign(BuildContext context,documentid,String question,List options,likes,List votes,username,bool ismultiple,bool singletime,userid,bool trending,bool ended,Timestamp endtime,bool optionslengthlarge) {
+
+Widget pollpostdesign(BuildContext context,documentid,String question,List options,likes,List votes,username,bool ismultiple,bool singletime,userid,bool trending,bool ended,Timestamp endtime,bool optionslengthlarge,bool mypolls) {
   var _isuservoteresponse; String lefttime=endtime.toDate().difference(DateTime.now()).inDays.toString()+" Days";
   bool isoptionslenthlarge= (options.length>4);
   if(endtime.toDate().difference(DateTime.now()).inDays<0){ended=true;}
@@ -475,7 +577,7 @@ Widget pollpostdesign(BuildContext context,documentid,String question,List optio
   stream:FirebaseFirestore.instance.collection("users").doc(userid).collection("polls").doc(documentid).snapshots(),
               builder:(context,future){
     if(future.hasData){
-      future.data!.metadata.isFromCache?print("from cache"):print("from internet");
+      future.data!.metadata.isFromCache?print("sub from cache"):print(" sub from internet");
       int votecount= votes.reduce((value, element) => value+element);
       _isuservoteresponse=List.generate(options.length, (index) => false);
       bool isliked=false;
@@ -503,7 +605,7 @@ Widget pollpostdesign(BuildContext context,documentid,String question,List optio
 
 
                 Padding(padding:EdgeInsets.fromLTRB(20, 10, 10, 10),
-                    child:Row(  children: [CircleAvatar(radius: 20,foregroundImage: NetworkImage("https://thumbs.dreamstime.com/b/girl-vector-icon-elements-mobile-concept-web-apps-thin-line-icons-website-design-development-app-premium-pack-glyph-flat-148592081.jpg"),),SizedBox(width: 5,),Text(username,style: TextStyle(color: Colors.black54),),Spacer(),popupmenu(context, documentid)],)),
+                    child:Row(  children: [CircleAvatar(radius: 20,foregroundImage: NetworkImage("https://thumbs.dreamstime.com/b/girl-vector-icon-elements-mobile-concept-web-apps-thin-line-icons-website-design-development-app-premium-pack-glyph-flat-148592081.jpg"),),SizedBox(width: 5,),Text(username,style: TextStyle(color: Colors.black54),),Spacer(),mypolls?mypollspopupmenu(context, documentid):popupmenu(context, documentid)],)),
 
                 Padding(padding:EdgeInsets.fromLTRB(10, 1, 10, 15),child:forlargequestions(context,question)),
                 Column(
@@ -546,18 +648,27 @@ class individualpollpage extends StatefulWidget{
   State<individualpollpage> createState() => _individualpollpage();
 }
 class _individualpollpage extends State<individualpollpage>{
-  StreamController _streamController =StreamController();
-
+  late StreamSubscription<DocumentSnapshot> feed;
+  late DocumentSnapshot _feed;
+  bool error=false;
+  bool loading=true;
   @override
   void initState() {
     // TODO: implement initState
+    feed = FirebaseFirestore.instance.collection("polls").doc(widget.documentid).snapshots().listen((event) {
+      setState(() {
+        _feed=event ;
+        loading=false;
+      });},onError: (e){setState(() {
+      error=true;
+    });});
     dynamiclinkhandler(context);
     super.initState();
   }
   @override
   void dispose() {
     // TODO: implement dispose
-    _streamController.close();
+    feed.cancel();
     super.dispose();
   }
 
@@ -569,7 +680,7 @@ class _individualpollpage extends State<individualpollpage>{
           backgroundColor:Colors.indigo[400],
           foregroundColor: Colors.white,
         leading: IconButton(onPressed: (){Navigator.of(context).push(MaterialPageRoute(builder: (context)=> votingpage()));}, icon: Icon(Icons.arrow_back)),),
-        body: SingleChildScrollView(child: showpost(documentid: widget.documentid,fetchcondition: FirebaseFirestore.instance.collection("polls"),optionslengthlarge: true,streamController: _streamController,),),
+        body: SingleChildScrollView(child: showpost(documentid: widget.documentid,optionslengthlarge: true,fetchcondition:null,individualfetch: !loading?_feed:null,error: error,ended: !loading?!(_feed["endtime"].toDate().difference(DateTime.now()).inSeconds>0):true),),
       )
       );}
 }
@@ -638,7 +749,9 @@ pushingtofirestore(question,List optionslist,time,multipleoption,publicview,sing
       "photo": photo,
       "like":0,
       "votes":votes,
-      "singletime":singletime
+      "singletime":singletime,
+      "userlikes":[],
+      "userresponses":{},
     }).timeout(Duration(seconds: 6));
     return newpoll.id;
   }on TimeoutException catch(e){return "out";} on Exception catch(e){
