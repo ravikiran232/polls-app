@@ -481,38 +481,6 @@ class _newpollpage extends State<newpollpage>{
 //   State<showpost> createState() => _showpost();
 // }
 Widget showpost({documentid:null,trending:false,ended:false,optionslengthlarge:false,required List<QueryDocumentSnapshot>? fetchcondition, DocumentSnapshot? individualfetch, required error,lazyloading:false,livecount:null,endcount:null,mypolls:false}) {
-   StreamSubscription<QuerySnapshot>?  __livefeed,__endedfeed;
-   late StreamController<QuerySnapshot> _streamcontroller;
-  // @override
-  // void didUpdateWidget(covariant showpost oldWidget) {
-  //   // TODO: implement didUpdateWidget
-  //   super.didUpdateWidget(oldWidget);
-  //   print(widget.streamController.hasListener);
-  //
-  //   print("running");
-  //   if(oldWidget.livecount!=widget.livecount && widget.lazyloading==true&&widget.endcount==null){
-  //     print("1");
-  //     __livefeed?.cancel();
-  //     __livefeed=FirebaseFirestore.instance.collection("polls").where("endtime",isGreaterThanOrEqualTo: DateTime.now()).limit(3).snapshots().listen((event) {
-  //       widget.streamController.sink.add(event);
-  //     });
-  //   }
-  //   if( widget.lazyloading==true&&widget.livecount==null){
-  //     print("@");
-  //     print("${widget.endcount}");
-  //      __endedfeed?.cancel();
-  //     __endedfeed=FirebaseFirestore.instance.collection("polls").where("endtime",isLessThanOrEqualTo: DateTime.now()).limit(widget.endcount).snapshots().listen((event) {
-  //
-  //       setState(() {
-  //         widget.streamController.sink.add(event);
-  //         widget.lazyloading=false;
-  //
-  //       });
-  //
-  //     });
-  //   }
-  //
-  // }
 
     if(documentid==null){
     return Builder(
@@ -679,7 +647,8 @@ class _individualpollpage extends State<individualpollpage>{
         appBar: AppBar(title: Text("Poll"),
           backgroundColor:Colors.indigo[400],
           foregroundColor: Colors.white,
-        leading: IconButton(onPressed: (){Navigator.of(context).push(MaterialPageRoute(builder: (context)=> votingpage()));}, icon: Icon(Icons.arrow_back)),),
+        leading: IconButton(onPressed: () => Navigator.of(context,rootNavigator: true).pop()
+            , icon: Icon(Icons.arrow_back)),),
         body: SingleChildScrollView(child: showpost(documentid: widget.documentid,optionslengthlarge: true,fetchcondition:null,individualfetch: !loading?_feed:null,error: error,ended: !loading?!(_feed["endtime"].toDate().difference(DateTime.now()).inSeconds>0):true),),
       )
       );}

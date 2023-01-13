@@ -59,9 +59,12 @@ class _mypollpage extends State<mypollspage>{
   void initState() {
     // TODO: implement initState
     var uid= FirebaseAuth.instance.currentUser?.uid;
-    myfeed = FirebaseFirestore.instance.collection("polls").where("uid",isEqualTo:uid ).snapshots().listen((event) {
+    print(uid);
+    myfeed = FirebaseFirestore.instance.collection("polls").where("userid",isEqualTo:uid ).snapshots().listen((event) {
       setState((){
+        print("hi");
         _myfeed=event.docs;
+        print(event.docs.length);
         loading=false;
       });
 
@@ -83,10 +86,11 @@ class _mypollpage extends State<mypollspage>{
         title: const Text("My Polls"),
         leading: IconButton(icon: Icon(Icons.arrow_back),onPressed: (){
           Navigator.of(context).push(MaterialPageRoute(builder: (context)=>voting()));
+
         },),
       ),
       body: SingleChildScrollView(
-        child: showpost(trending: true,fetchcondition:!loading? _myfeed:null,error: error,mypolls:true),
+        child: showpost(fetchcondition:!loading? _myfeed:null,error: error,mypolls:true),
       ),
     ));
   }
@@ -123,7 +127,7 @@ mypollspopupmenu(BuildContext context,var documentid){
     }
     if (value==0){
       showDialog(context: context, builder: (_)=>
-      const Dialog(child: CircularProgressIndicator(),));
+      const  SizedBox(height:50,width:30,child:CircularProgressIndicator(strokeWidth: 3,)));
       await FirebaseFirestore.instance.collection("polls").doc(documentid).update({"endtime":DateTime.now()});
       Navigator.of(context,rootNavigator: true).pop();
       Fluttertoast.showToast(msg: "Your poll has been ended successfully");
