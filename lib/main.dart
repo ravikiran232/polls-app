@@ -6,11 +6,14 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'firebase_options.dart';
 import 'package:animated_splash_screen/animated_splash_screen.dart';
 
 import 'package:url_launcher/url_launcher.dart';
 import 'package:page_transition/page_transition.dart';
+import 'homepage_sell.dart';
 import 'login_page.dart';
 import 'signup_page.dart';
 import 'email_verify.dart';
@@ -20,11 +23,26 @@ import 'newpost_page.dart';
 import 'voting_page.dart';
 import "my_polls.dart";
 
+
+@pragma('vm:entry-point')
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  // If you're going to use other Firebase services in the background, such as Firestore,
+  // make sure you call `initializeApp` before using other Firebase services.
+  await Firebase.initializeApp();
+  await FirebaseDatabase.instance.ref('buyandsellmessages/123456789/latsmessage/${message.data["id"]}/').update({"status":"delivered"});
+  print("hi");
+
+
+}
+
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler,);
   final PendingDynamicLinkData? initialLink = await FirebaseDynamicLinks.instance.getInitialLink();
   print(initialLink);
   if (initialLink!=null){
@@ -33,7 +51,7 @@ void main() async {
     List pathfragments= deepLink.path.split("/");
     runApp(votingpage());
   }
-  runApp(voting());
+  runApp(Home());
 
 }
 

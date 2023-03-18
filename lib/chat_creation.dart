@@ -1,0 +1,4 @@
+
+
+creatchatroomid(useruid,distantuid){
+}

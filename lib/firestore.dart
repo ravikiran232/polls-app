@@ -10,6 +10,7 @@ import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
 import 'package:login/main.dart';
 
 // signin function
@@ -83,16 +84,13 @@ newonlikepress(documentid,likestatus,userid,postfeature, bool isfieldavailable) 
   if(likestatus==true){
     try{
     await FirebaseFirestore.instance.collection(postfeature).doc(documentid).update({"like":FieldValue.increment(-1)});
-    await FirebaseFirestore.instance.collection("users").doc(userid).collection(postfeature).doc(documentid).update({"like":false});} on Exception catch(e){Fluttertoast.showToast(msg: "something went wrong",timeInSecForIosWeb: 3,backgroundColor: Colors.red);}
+    await FirebaseFirestore.instance.collection(postfeature).doc(documentid).update({"userlikes":FieldValue.arrayRemove([userid])});} on Exception catch(e){Fluttertoast.showToast(msg: "something went wrong",timeInSecForIosWeb: 3,backgroundColor: Colors.red);}
   }
   else{
     try{
     await FirebaseFirestore.instance.collection(postfeature).doc(documentid).update({"like":FieldValue.increment(1)});
-    if(isfieldavailable){
-    await FirebaseFirestore.instance.collection("users").doc(userid).collection(postfeature).doc(documentid).update({"like":true});}
-    else{
-      await FirebaseFirestore.instance.collection("users").doc(userid).collection(postfeature).doc(documentid).set({"like":true});
-    }}on Exception catch(e){ errormessage(Colors.red, "something went wrong", "hi");}
+    await FirebaseFirestore.instance.collection(postfeature).doc(documentid).update({"userlikes":FieldValue.arrayUnion([userid])});
+    }on Exception catch(e){ errormessage(Colors.red, "something went wrong", "hi");}
   }
 }
 
@@ -144,9 +142,9 @@ firebasedynamiclink(path,documentid) async{
 }
 
 // handling the user option press.
-onsamevotepress(List uservoted,documentid,_ismultiple,_issingletime,indexofpress,optionslength,votecountlist,_isvoted,bool isfieldavailable) async{
+onsamevotepress(List uservoted,documentid,_ismultiple,_issingletime,indexofpress,optionslength,votecountlist,_isvoted,) async{
   var user= await FirebaseAuth.instance.currentUser;
-  var _uid= user?.uid;
+  var uid= user?.uid;
   
   if ( _ismultiple==true&&_issingletime==false){
     List response=uservoted;
@@ -157,11 +155,8 @@ onsamevotepress(List uservoted,documentid,_ismultiple,_issingletime,indexofpress
     if(_forincrement==false){votecountlist[indexofpress]=votecountlist[indexofpress]+1;}
     try{
     await FirebaseFirestore.instance.collection("polls").doc(documentid).update({"votes":votecountlist});
-    if(isfieldavailable){
-    await FirebaseFirestore.instance.collection("users").doc(_uid).collection("polls").doc(documentid).update({"response":response});}
-    if(!isfieldavailable){
-      await FirebaseFirestore.instance.collection("users").doc(_uid).collection("polls").doc(documentid).set({"response":response});
-    }} on Exception catch (e){errormessage(Colors.red, "something went wrong", "context");}
+    await FirebaseFirestore.instance.collection("polls").doc(documentid).update(({"userresponses.$uid":response}));
+    } on Exception catch (e){errormessage(Colors.red, "something went wrong", "context");}
     return true;
   }
   if( _ismultiple==false && _issingletime==false){
@@ -177,11 +172,8 @@ onsamevotepress(List uservoted,documentid,_ismultiple,_issingletime,indexofpress
     if(_forincrement==false){votecountlist[indexofpress]=votecountlist[indexofpress]+1;}
     try{
     await FirebaseFirestore.instance.collection("polls").doc(documentid).update({"votes":votecountlist});
-    if(isfieldavailable){
-      await FirebaseFirestore.instance.collection("users").doc(_uid).collection("polls").doc(documentid).update({"response":response});}
-    if(!isfieldavailable){
-      await FirebaseFirestore.instance.collection("users").doc(_uid).collection("polls").doc(documentid).set({"response":response});
-    }}on Exception catch(e){errormessage(Colors.red, "something went wrong", "context");}
+    await FirebaseFirestore.instance.collection("polls").doc(documentid).update(({"userresponses.$uid":response}));
+    }on Exception catch(e){errormessage(Colors.red, "something went wrong", "context");}
     return true;
   }
 
@@ -199,4 +191,47 @@ onsamevotepress(List uservoted,documentid,_ismultiple,_issingletime,indexofpress
     Fluttertoast.showToast(msg: "owner has allowed only single vote for a user",backgroundColor: Colors.red,timeInSecForIosWeb:4 );
   }
 
+}
+
+
+// realtime database functions be ready.........
+
+decodingdata(final data){
+  final map = data as Map;
+  List<types.Message> messages=[];
+  for (var value in map.values){
+    if (value["status"]=="read"){
+    messages.add(
+      types.TextMessage(author: types.User(id:value["author"]),
+          id:value["id"] ,
+          text: value["text"],
+      createdAt: value["createdAt"],
+      status: types.Status.seen)
+    );}
+    if (value["status"]=="delivered"){
+      messages.add(
+          types.TextMessage(author: types.User(id:value["author"]),
+              id:value["id"] ,
+              text: value["text"],
+              createdAt: value["createdAt"],
+              status: types.Status.delivered)
+      );
+    }
+    if (value["status"]=="sent"){
+      messages.add(
+          types.TextMessage(author: types.User(id:value["author"]),
+              id:value["id"] ,
+              text: value["text"],
+              createdAt: value["createdAt"],
+              status: types.Status.sent)
+      );
+    }
+  }
+  print("data from the server decoded successfully ");
+  return messages;
+}
+
+userstatus(String status) async{
+  String uid = FirebaseAuth.instance.currentUser!.uid;
+  await FirebaseFirestore.instance.collection("Anonymouschat").doc("123456789").update({uid:status});
 }

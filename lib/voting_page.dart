@@ -14,11 +14,12 @@ import 'package:show_more_text_popup/show_more_text_popup.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:sql_conn/sql_conn.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
-import 'package:flutter_gradient_colors/flutter_gradient_colors.dart';
-import 'package:readmore/readmore.dart';
+import 'package:read_more_text/read_more_text.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:date_time_picker/date_time_picker.dart';
 import 'package:lottie/lottie.dart';
+import 'package:shimmer/shimmer.dart';
+import 'package:colours/colours.dart';
 import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
@@ -53,10 +54,9 @@ class votingpage extends StatefulWidget{
 class _votingpage extends State<votingpage> with TickerProviderStateMixin{
   bool isslidingopened=false;
   List values=[1,2,3,4];
+  String uid="";
   ScrollController live =ScrollController();
   ScrollController ended = ScrollController();
-  StreamController<QuerySnapshot> _lstreamController=StreamController(),_endstream=StreamController(),_trendstream=StreamController();
-  // int livecount=3,endcount=3;
   late String college;
   late List<QueryDocumentSnapshot> _trendingfeed,_livefeed,_endedfeed;
   late StreamSubscription<QuerySnapshot>  __trendingfeed,__livefeed,__endedfeed;
@@ -93,8 +93,8 @@ class _votingpage extends State<votingpage> with TickerProviderStateMixin{
   void initState() {
     // TODO: implement initState
 
-    dynamiclinkhandler(context); // for handling dynamiclinks of firebase
-
+    dynamiclinkhandler(context); // for handling dynamiclinks of firebas
+    uid= FirebaseAuth.instance.currentUser!.uid;
 
     live.addListener(() {
     if(live.position.atEdge){
@@ -128,21 +128,21 @@ class _votingpage extends State<votingpage> with TickerProviderStateMixin{
     // var data=await FirebaseFirestore.instance.collection("users").doc(uid).get();
     // college=data["college"];
 
-    __trendingfeed=FirebaseFirestore.instance.collection("polls").where("endtime",isGreaterThanOrEqualTo: DateTime.now()).limit(3).snapshots().listen((event) {
+    __trendingfeed=FirebaseFirestore.instance.collection("polls").orderBy('endtime',descending: true).where("endtime",isGreaterThanOrEqualTo: DateTime.now()).limit(3).snapshots().listen((event) {
       setState(() {
         _trendingfeed=event.docs ;
         trendloading=false;
       });},onError: (e){setState(() {
       error=true;
     });});
-    __livefeed=FirebaseFirestore.instance.collection("polls").where("endtime",isGreaterThanOrEqualTo: DateTime.now()).limit(3).snapshots().listen((event) {
+    __livefeed=FirebaseFirestore.instance.collection("polls").where("endtime",isGreaterThanOrEqualTo: DateTime.now()).orderBy('endtime',descending: true).limit(3).snapshots().listen((event) {
       setState(() {
         _livefeed=event.docs ;
         liveloading=false;
       });},onError: (e){setState(() {
         error=true;
       });});
-    __endedfeed=FirebaseFirestore.instance.collection("polls").where("endtime",isLessThanOrEqualTo: DateTime.now()).limit(3).snapshots().listen((event) {
+    __endedfeed=FirebaseFirestore.instance.collection("polls").where("endtime",isLessThanOrEqualTo: DateTime.now()).orderBy('endtime',descending: true).limit(3).snapshots().listen((event) {
       setState(() {
 
        _endedfeed=event.docs ;
@@ -170,9 +170,10 @@ class _votingpage extends State<votingpage> with TickerProviderStateMixin{
     return  Builder(
         builder:(context)=>
       DefaultTabController(
+
       length:3,
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: Colours.whiteSmoke,
         appBar: AppBar(
           toolbarHeight: 90,
           elevation: 4,
@@ -194,22 +195,22 @@ class _votingpage extends State<votingpage> with TickerProviderStateMixin{
         unselectedLabelColor: Colors.white,
         labelStyle: const TextStyle(fontSize: 15,fontWeight: FontWeight.bold),
         tabs: [
-          Tab(child:Row(mainAxisAlignment:MainAxisAlignment.center,children: [Icon(Icons.local_fire_department_sharp),SizedBox(width: 5,),Text("Trending")],)),
-          Tab(child:Row(mainAxisAlignment:MainAxisAlignment.center,children: [Icon(Icons.poll_sharp),SizedBox(width: 5,),Text("LIVE")],)),
-          Tab(child:Row(mainAxisAlignment:MainAxisAlignment.center,children: [Icon(Icons.timelapse),SizedBox(width: 5,),Text("Ended")],))
+          Tab(child:Row(mainAxisAlignment:MainAxisAlignment.center,children: const [Icon(Icons.local_fire_department_sharp),SizedBox(width: 5,),Text("Trending")],)),
+          Tab(child:Row(mainAxisAlignment:MainAxisAlignment.center,children: const [Icon(Icons.poll_sharp),SizedBox(width: 5,),Text("LIVE")],)),
+          Tab(child:Row(mainAxisAlignment:MainAxisAlignment.center,children: const [Icon(Icons.timelapse),SizedBox(width: 5,),Text("Ended")],))
         ] ),),
 
         body: TabBarView(
           children:[
             SingleChildScrollView(
-                child:showpost(trending: true,fetchcondition:!trendloading? _trendingfeed:null,error: error,)),
+                child:showpost(trending: true,fetchcondition:!trendloading? _trendingfeed:null,error: error,uid:uid)),
 
             SingleChildScrollView(
               controller: live,
-                child:showpost(fetchcondition:!liveloading? _livefeed:null,error: error,lazyloading:_lazyloading,livecount:widget.livecount,endcount:null)),
+                child:showpost(fetchcondition:!liveloading? _livefeed:null,error: error,lazyloading:_lazyloading,livecount:widget.livecount,endcount:null,uid:uid)),
             SingleChildScrollView(
               controller: ended,
-                child:showpost(ended: true,fetchcondition:!endedloading? _endedfeed:null,error: error,lazyloading:_lazyloading,endcount:widget.endcount,livecount:null))
+                child:showpost(ended: true,fetchcondition:!endedloading? _endedfeed:null,error: error,lazyloading:_lazyloading,endcount:widget.endcount,livecount:null,uid:uid))
           ],
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
@@ -222,11 +223,11 @@ class _votingpage extends State<votingpage> with TickerProviderStateMixin{
 }
 
 class optionforquestion extends StatefulWidget{
-  optionforquestion(this.documentid,this.option,this.multiple,this.index,this.uservoteresponse,this.singletime,this.optionslength,this.votecountlist,this.totalvotecount,this.uservoted,this.ended,this.isfieldavailable);
+  optionforquestion(this.documentid,this.option,this.multiple,this.index,this.uservoteresponse,this.singletime,this.optionslength,this.votecountlist,this.totalvotecount,this.uservoted,this.ended);
   var option,documentid;
   bool multiple , ended;
   int index,optionslength;
-   List uservoteresponse;bool singletime; var votecountlist; int totalvotecount; bool uservoted; bool isfieldavailable;
+   List uservoteresponse;bool singletime; var votecountlist; int totalvotecount; bool uservoted;
   @override
   State<optionforquestion> createState()=> _optionforquestion();
 }
@@ -234,13 +235,15 @@ class _optionforquestion extends State<optionforquestion>{
   @override
   Widget build(BuildContext context) {
     var size=MediaQuery.of(context).size.width*0.85;
-    bool _value=widget.uservoteresponse[widget.index];
+    bool value=widget.uservoteresponse[widget.index];
     bool uservoted=widget.uservoted;
     if(widget.ended){uservoted=widget.ended;}
     if(widget.totalvotecount==0){uservoted=false;}
     return InkWell(onTap: ()async{
       if (!widget.ended){
-     await onsamevotepress(widget.uservoteresponse,widget.documentid, widget.multiple, widget.singletime, widget.index, widget.optionslength,widget.votecountlist,widget.uservoted,widget.isfieldavailable);}
+        List dummyuservoterresponse=
+     await onsamevotepress(widget.uservoteresponse,widget.documentid, widget.multiple, widget.singletime, widget.index, widget.optionslength,widget.votecountlist,widget.uservoted,);
+      }
       else{Fluttertoast.showToast(msg: "This poll has been ended",backgroundColor: Colors.red,timeInSecForIosWeb: 3);}
 
    },
@@ -258,9 +261,9 @@ class _optionforquestion extends State<optionforquestion>{
               width: size ,
               margin: const EdgeInsets.symmetric(vertical: 5,horizontal: 10),
               padding: const EdgeInsets.symmetric(horizontal: 10),
-              decoration: BoxDecoration(shape: BoxShape.rectangle,borderRadius: BorderRadius.circular(12),border: Border.all(color: _value?Colors.blue:Colors.black54),),
+              decoration: BoxDecoration(shape: BoxShape.rectangle,borderRadius: BorderRadius.circular(12),border: Border.all(color: value?Colors.blue:Colors.black54),),
               child:
-              Row(children:[ _value?Icon(Icons.verified):SizedBox(width: 5,),Text(widget.option.toString()),uservoted?Row(children:[SizedBox(width:15),Text(double.parse(((widget.votecountlist[widget.index]/widget.totalvotecount)*100).toStringAsFixed(1)).toString()+"%",style: TextStyle(fontWeight: FontWeight.bold),)]):SizedBox(height: 5,)]),
+              Row(children:[ value?const Icon(Icons.check):SizedBox(width: 5,),Text(widget.option.toString()),uservoted?Row(children:[SizedBox(width:15),Text(double.parse(((widget.votecountlist[widget.index]/widget.totalvotecount)*100).toStringAsFixed(1)).toString()+"%",style: TextStyle(fontWeight: FontWeight.bold),)]):SizedBox(height: 5,)]),
             ),
          ],
         ));
@@ -271,6 +274,8 @@ class _optionforquestion extends State<optionforquestion>{
 // for adding the new questions to the polls by + option.
 
 class newpoll extends StatelessWidget{
+  const newpoll({super.key});
+
   @override
   Widget build(BuildContext context){
     return MaterialApp(
@@ -318,7 +323,7 @@ class _newpollpage extends State<newpollpage>{
         ),
         body:
             Card(
-              margin: const EdgeInsets.fromLTRB(10, 20, 10, 15),
+              //margin: const EdgeInsets.fromLTRB(10, 20, 10, 15),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
               elevation: 4,
 
@@ -429,7 +434,8 @@ class _newpollpage extends State<newpollpage>{
                             isprivate=!isprivate;
                           });
                         }
-                      ),const Text("only person with link can see the post")]),
+                      ),const Expanded(child:Text("Make the post visible to only those who have the link.",
+                          ))]),
                 SizedBox(height:5),
                 Row(
                 children:[
@@ -441,7 +447,7 @@ class _newpollpage extends State<newpollpage>{
                     });
 
                   }
-                ),const Text("allow multiple option selection")]),
+                ),const Text("allow choosing of many options")]),
                       SizedBox(height: 5,),
                       Row(
                           children:[
@@ -453,9 +459,9 @@ class _newpollpage extends State<newpollpage>{
                                   });
 
                                 }
-                            ),const Text("only one vote per user")]),
+                            ),const Text("single vote per user")]),
                       ElevatedButton(
-                        style: ElevatedButton.styleFrom(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),minimumSize: Size(100, 40),backgroundColor:Colors.indigo[400] ),
+                        style: ElevatedButton.styleFrom(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),minimumSize: const Size(150, 60),backgroundColor:Colors.indigo[400] ),
                         onPressed: () async{
                         if(_key.currentState?.validate()==true){await showloadingdilog(context,questioncontroller.text,textcontrollers,DateTime.parse(datetime),ismultiple,isprivate,issingletime);
                         //if (submitvalue){Fluttertoast.showToast(msg: "submitted successfully",backgroundColor: Colors.green,timeInSecForIosWeb: 4);}
@@ -480,7 +486,7 @@ class _newpollpage extends State<newpollpage>{
 //   @override
 //   State<showpost> createState() => _showpost();
 // }
-Widget showpost({documentid:null,trending:false,ended:false,optionslengthlarge:false,required List<QueryDocumentSnapshot>? fetchcondition, DocumentSnapshot? individualfetch, required error,lazyloading:false,livecount:null,endcount:null,mypolls:false}) {
+Widget showpost({documentid:null,trending:false,ended:false,optionslengthlarge:false,required List<QueryDocumentSnapshot>? fetchcondition, DocumentSnapshot? individualfetch, required error,lazyloading:false,livecount:null,endcount:null,mypolls:false,String uid:""}) {
 
     if(documentid==null){
     return Builder(
@@ -489,7 +495,7 @@ Widget showpost({documentid:null,trending:false,ended:false,optionslengthlarge:f
           if(!error &&fetchcondition!=null){
             List<Widget> _widget=((fetchcondition.map((items){
               print(items.metadata.isFromCache?"From local":"from internet");
-              return pollpostdesign(context,items.id, items["question"], items["options"],items["like"], items["votes"], items['username'],items["multipleopt"],items['singletime'],items["userid"],trending,ended,items["endtime"],false,mypolls);})))!.toList();
+              return pollpostdesign(context,items.id, items["question"], items["options"],items["like"], items["votes"], items['username'],items["multipleopt"],items['singletime'],items["userid"],trending,ended,items["endtime"],false,mypolls,items['userlikes'],items['userresponses'],uid);})))!.toList();
             _widget.add(lazyloading?CircularProgressIndicator(strokeWidth: 3,):SizedBox.shrink());
       return Column(
         children: _widget
@@ -499,7 +505,36 @@ Widget showpost({documentid:null,trending:false,ended:false,optionslengthlarge:f
         // if(streamer.hasError){
         //   return const Text("An Error Occured",style:TextStyle(fontWeight: FontWeight.bold,color: Colors.red,fontSize: 20),textAlign:TextAlign.center,);
         // }
-        else{return const Text("something went wrong",style:TextStyle(fontWeight: FontWeight.bold,color: Colors.red,fontSize: 20),textAlign:TextAlign.center,);}
+          if(error==true){
+            return Column(
+
+                children:[LottieBuilder.asset("assets/lottiefiles/85978-error-dialog.json",
+            frameRate: FrameRate.max,
+            repeat: false,
+            animate: true ,
+            alignment: Alignment.center,),
+            const SizedBox(height: 30,),
+            ElevatedButton(onPressed: (){},
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.red,shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),fixedSize: Size(150, 50)),
+                child: const Text("Reload",style: TextStyle(fontWeight: FontWeight.bold,color: Colors.white),))]);
+          }
+        else{
+          List value=[1,2,3,4];
+          return Column(
+            children: value.map((_)=>
+            Shimmer.fromColors(
+            baseColor: Colors.yellow,
+                highlightColor: Colors.red,
+                child: Container(
+            child:Card(
+                margin: const EdgeInsets.fromLTRB(15, 10, 15, 10),
+            elevation: 5,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+             ),
+            ),
+            )).toList(),
+          );
+          }
       });
   }
     else{
@@ -508,7 +543,7 @@ Widget showpost({documentid:null,trending:false,ended:false,optionslengthlarge:f
              if(individualfetch!=null) {//streamer.data!.metadata.isFromCache?print("from cache"):print("from internet");
               var items=individualfetch!;
               return Column(
-                children: [pollpostdesign(context,documentid, items["question"], items["options"], items["like"], items["votes"], items['username'],items["multipleopt"],items['singletime'],items["userid"],false,ended,items["endtime"],optionslengthlarge,mypolls)]);
+                children: [pollpostdesign(context,documentid, items["question"], items["options"], items["like"], items["votes"], items['username'],items["multipleopt"],items['singletime'],items["userid"],false,ended,items["endtime"],optionslengthlarge,mypolls,items["userlikes"],items['userresponses'],uid)]);
 
               }
              if (individualfetch==null){
@@ -521,10 +556,10 @@ Widget showpost({documentid:null,trending:false,ended:false,optionslengthlarge:f
     }
   }
 
-Widget pollpostdesign(BuildContext context,documentid,String question,List options,likes,List votes,username,bool ismultiple,bool singletime,userid,bool trending,bool ended,Timestamp endtime,bool optionslengthlarge,bool mypolls) {
+Widget pollpostdesign(BuildContext context,documentid,String question,List options,likes,List votes,username,bool ismultiple,bool singletime,userid,bool trending,bool ended,Timestamp endtime,bool optionslengthlarge,bool mypolls,List likesarray,Map userresponses,String uid) {
   var _isuservoteresponse; String lefttime=endtime.toDate().difference(DateTime.now()).inDays.toString()+" Days";
   bool isoptionslenthlarge= (options.length>4);
-  if(endtime.toDate().difference(DateTime.now()).inDays<0){ended=true;}
+  if(endtime.toDate().difference(DateTime.now()).inSeconds<0){ended=true;}
   if (endtime.toDate().difference(DateTime.now()).inDays==0){
     if(endtime.toDate().difference(DateTime.now()).inHours>0){
       lefttime="${endtime.toDate().difference(DateTime.now()).inHours} Hours";
@@ -537,66 +572,66 @@ Widget pollpostdesign(BuildContext context,documentid,String question,List optio
     },
     child:Container(
     child:Card(
+      color: Colours.white,
     margin: EdgeInsets.fromLTRB(15, 10, 15, 10),
     elevation: 5,
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
     child:
-      StreamBuilder(
-  stream:FirebaseFirestore.instance.collection("users").doc(userid).collection("polls").doc(documentid).snapshots(),
-              builder:(context,future){
-    if(future.hasData){
-      future.data!.metadata.isFromCache?print("sub from cache"):print(" sub from internet");
-      int votecount= votes.reduce((value, element) => value+element);
-      _isuservoteresponse=List.generate(options.length, (index) => false);
-      bool isliked=false;
-      bool isfieldavailable=false;
-      if(future.data?.data()  !=null){
-        if(future.data?.data()?.containsKey("response")==true){
-          isfieldavailable=true;
-      _isuservoteresponse=future.data!["response"];}
-      if(future.data?.data()?.containsKey("like")==true){
-        isfieldavailable=true;
-        isliked=future.data!["like"];
-      }}
-      bool _isuservoted=_isuservoteresponse.contains(true);
-      return Stack(
-        clipBehavior: Clip.none,
-        children:[
-      trending?Positioned(
-          top:-20,child: Card(elevation: 6,
-        //shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-        child: Container(height: 35,width: 80,alignment: Alignment.topRight,
-          decoration: BoxDecoration(gradient: LinearGradient(colors: [Colors.redAccent,Colors.amber],begin: Alignment.topLeft,end: Alignment.bottomRight))
-          ,child: Center(child:Text("Trending",style: TextStyle(fontWeight: FontWeight.bold,color: Colors.white),),),),)):const Text(""),
-              Column(
-              children: [
+      Builder(
+  // stream:FirebaseFirestore.instance.collection("users").doc(userid).collection("polls").doc(documentid).snapshots(),
+              builder:(context){
+  // future.data!.metadata.isFromCache?print("sub from cache"):print(" sub from internet");
+  int votecount= votes.reduce((value, element) => value+element);
+  _isuservoteresponse=List.generate(options.length, (index) => false);
+  if (userresponses.containsKey(uid)){
+  _isuservoteresponse=userresponses[uid];
+  }
+
+  bool isliked=likesarray.contains(uid);
+  bool _isuservoted=_isuservoteresponse.contains(true);
+  return Stack(
+  clipBehavior: Clip.none,
+  children:[
+  trending?Positioned(
+  top:-20,child: Card(elevation: 6,
+  //shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+  child: Container(height: 35,width: 80,alignment: Alignment.topRight,
+  decoration: BoxDecoration(gradient: LinearGradient(colors: [Colors.redAccent,Colors.amber],begin: Alignment.topLeft,end: Alignment.bottomRight))
+  ,child: Center(   child:Shimmer.fromColors(baseColor: Colors.white,highlightColor: Colors.grey,child:  const Text("Trending",style: TextStyle(fontWeight: FontWeight.bold,color: Colors.white),),),),))):const Text(""),
+  Column(
+  children: [
 
 
-                Padding(padding:EdgeInsets.fromLTRB(20, 10, 10, 10),
-                    child:Row(  children: [CircleAvatar(radius: 20,foregroundImage: NetworkImage("https://thumbs.dreamstime.com/b/girl-vector-icon-elements-mobile-concept-web-apps-thin-line-icons-website-design-development-app-premium-pack-glyph-flat-148592081.jpg"),),SizedBox(width: 5,),Text(username,style: TextStyle(color: Colors.black54),),Spacer(),mypolls?mypollspopupmenu(context, documentid):popupmenu(context, documentid)],)),
+  Padding(padding:EdgeInsets.fromLTRB(20, 10, 10, 10),
+  child:Row( children: [CircleAvatar(radius: 20,foregroundImage: NetworkImage("https://thumbs.dreamstime.com/b/girl-vector-icon-elements-mobile-concept-web-apps-thin-line-icons-website-design-development-app-premium-pack-glyph-flat-148592081.jpg"),),SizedBox(width: 5,),Text(username,style: TextStyle(color: Colors.black54),),Spacer(),mypolls?mypollspopupmenu(context, documentid):popupmenu(context, documentid)],)),
 
-                Padding(padding:EdgeInsets.fromLTRB(10, 1, 10, 15),child:forlargequestions(context,question)),
-                Column(
-                    children: !isoptionslenthlarge?options.asMap().entries.map((items)=>optionforquestion(documentid,items.value,ismultiple,items.key,_isuservoteresponse!,singletime,options.length,votes,votecount,_isuservoted,ended,isfieldavailable)).toList():[largeoptioncontainer(context,documentid)]
-                ),
-                SizedBox(height: 3,),
-                Row(children:[OutlinedButton(style:OutlinedButton.styleFrom(side:BorderSide(color: Colors.white),shape:RoundedRectangleBorder(borderRadius: BorderRadius.circular(15))),onPressed: (){newonlikepress(documentid, isliked, userid, "polls",_isuservoted);}, child: Column(children:[Icon(isliked?Icons.favorite:Icons.favorite_border_outlined,color: isliked?Colors.red:Colors.black,),Text(likes.toString()+" likes",style: TextStyle(color: Colors.black),)])), IconButton(onPressed: ()async{
-                  var linkresult=await firebasedynamiclink("polls",documentid );
-                  if (linkresult!=false || linkresult!="out"){
-                    Share.share("express your opnion to the poll "+linkresult.toString());
-                  }
-                  else{Fluttertoast.showToast(msg: "unable to generate link",backgroundColor: Colors.red,timeInSecForIosWeb: 3);}
-                }, icon:Icon(Icons.share)),SizedBox(width: 10,),ended?Text("Final Results",style: TextStyle(color: Colors.black54),):Text("Ends in:"+lefttime,style: TextStyle(color: Colors.black54),),SizedBox(width: 15,),Text("votes : "+votecount.toString(),style: TextStyle(color: Colors.black54),)
-                ])
-              ],
-                  )]);}
-    else if (future.hasData==false){
-      return  Container(constraints: BoxConstraints(minHeight:200 ),child:Center(child: CircularProgressIndicator(),)
-      );
-    }
-
-    else{return Text("An error Occured",style: TextStyle(fontWeight: FontWeight.bold,color: Colors.red),);}
-  }))));}
+  Padding(padding:EdgeInsets.fromLTRB(10, 1, 10, 15),child:forlargequestions(context,question)),
+  Column(
+  children: !isoptionslenthlarge?options.asMap().entries.map((items)=>optionforquestion(documentid,items.value,ismultiple,items.key,_isuservoteresponse!,singletime,options.length,votes,votecount,_isuservoted,ended)).toList():[largeoptioncontainer(context,documentid)]
+  ),
+  SizedBox(height: 3,),
+  Row(children:[OutlinedButton(style:OutlinedButton.styleFrom(side:BorderSide(color: Colors.white),shape:RoundedRectangleBorder(borderRadius: BorderRadius.circular(15))),onPressed: (){newonlikepress(documentid, isliked, userid, "polls",_isuservoted);}, child: Column(children:[Icon(isliked?Icons.favorite:Icons.favorite_border_outlined,color: isliked?Colors.red:Colors.black,),Text(likes.toString()+" likes",style: TextStyle(color: Colors.black),)])), IconButton(onPressed: ()async{
+  var linkresult=await firebasedynamiclink("polls",documentid );
+  if (linkresult!=false || linkresult!="out"){
+  Share.share("express your opnion to the poll "+linkresult.toString());
+  }
+  else{Fluttertoast.showToast(msg: "unable to generate link",backgroundColor: Colors.red,timeInSecForIosWeb: 3);}
+  }, icon:Icon(Icons.share)),SizedBox(width: 10,),ended?Text("Final Results",style: TextStyle(color: Colors.black54),):Text("Ends in:"+lefttime,style: TextStyle(color: Colors.black54),),SizedBox(width: 15,),Text("votes : "+votecount.toString(),style: TextStyle(color: Colors.black54),)
+  ])
+  ],
+  )]);
+  //   else if (future.hasData==false){
+  //     return  Container(constraints: BoxConstraints(minHeight:200 ),child:Center(child: CircularProgressIndicator(),)
+  //     );
+  //   }
+  //
+  //   else{return Text("An error Occured",style: TextStyle(fontWeight: FontWeight.bold,color: Colors.red),);}
+  // }),
+  }),
+    ),
+    )
+    );
+}
 
 class individualpoll extends StatelessWidget{
   individualpoll(this.documentid,this.optionslengthlarge);
@@ -620,9 +655,11 @@ class _individualpollpage extends State<individualpollpage>{
   late DocumentSnapshot _feed;
   bool error=false;
   bool loading=true;
+  String uid="";
   @override
   void initState() {
     // TODO: implement initState
+    uid= FirebaseAuth.instance.currentUser!.uid;
     feed = FirebaseFirestore.instance.collection("polls").doc(widget.documentid).snapshots().listen((event) {
       setState(() {
         _feed=event ;
@@ -644,12 +681,13 @@ class _individualpollpage extends State<individualpollpage>{
   Widget build(BuildContext context){
   return Builder(
       builder:(context)=>Scaffold(
+        backgroundColor: Colors.transparent,
         appBar: AppBar(title: Text("Poll"),
           backgroundColor:Colors.indigo[400],
           foregroundColor: Colors.white,
         leading: IconButton(onPressed: () => Navigator.of(context,rootNavigator: true).pop()
             , icon: Icon(Icons.arrow_back)),),
-        body: SingleChildScrollView(child: showpost(documentid: widget.documentid,optionslengthlarge: true,fetchcondition:null,individualfetch: !loading?_feed:null,error: error,ended: !loading?!(_feed["endtime"].toDate().difference(DateTime.now()).inSeconds>0):true),),
+        body: SingleChildScrollView(child: showpost(documentid: widget.documentid,optionslengthlarge: true,fetchcondition:null,individualfetch: !loading?_feed:null,error: error,ended: !loading?!(_feed["endtime"].toDate().difference(DateTime.now()).inSeconds>0):true,uid:uid),),
       )
       );}
 }
@@ -730,6 +768,7 @@ pushingtofirestore(question,List optionslist,time,multipleoption,publicview,sing
 
 showloadingdilog(BuildContext context,question, optionslist, time, multipleoption, bool publicview,singletime){
   var document_id;
+  int count=0;
   showDialog(context: context,
       barrierDismissible: false,
       //have to use dialog for customisation after finding better loading animations.
@@ -745,13 +784,7 @@ showloadingdilog(BuildContext context,question, optionslist, time, multipleoptio
               else{return Text("An error Occured",style: TextStyle(fontWeight: FontWeight.bold,color: Colors.red),);}
             }
             else if (future.hasData==false){
-              return
-              Lottie.asset("assets/lottiefiles/92864-loading-animation.json",
-              animate: true,
-              height: 90,
-              addRepaintBoundary: false,
-              reverse: true,
-              repeat: true,);
+              return (Container(height:40,alignment: Alignment.center,color:Colors.white,child: const CircularProgressIndicator(),));
             }
 
             else{return Text("An error Occured",style: TextStyle(fontWeight: FontWeight.bold,color: Colors.red),);}
@@ -768,7 +801,7 @@ showloadingdilog(BuildContext context,question, optionslist, time, multipleoptio
             else{Fluttertoast.showToast(msg: "unable to generate link",backgroundColor: Colors.red,timeInSecForIosWeb: 3);}
 
           }, child:Text("share")),
-          TextButton(onPressed: (){Navigator.of(context,rootNavigator: true).pop();}, child: Text("ok"))
+          TextButton(onPressed: (){Navigator.of(context).popUntil((_)=>count++>=2);}, child: Text("ok"))
         ],
       ));
 }

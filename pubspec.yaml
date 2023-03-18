@@ -54,6 +54,14 @@ dependencies:
   share_plus: ^4.5.0
   firebase_dynamic_links:
   lottie:
+  read_more_text:
+  flutter_chat_ui:
+  sqflite:
+  shimmer:
+  colours:
+  flutter_chat_bubble:
+  firebase_database:
+  firebase_messaging:
 
 
 dev_dependencies:
@@ -78,6 +86,8 @@ flutter:
   # the material Icons class.
   uses-material-design: true
   assets:
+    - assets/images/
+    - assets/emoticons/
     - assets/lottiefiles/
   # To add assets to your application, add an assets section, like this:
   # assets:
