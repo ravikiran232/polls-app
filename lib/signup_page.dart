@@ -2,24 +2,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/services.dart';
-import 'firebase_options.dart';
-import 'package:animated_splash_screen/animated_splash_screen.dart';
-import 'package:show_more_text_popup/show_more_text_popup.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'package:sql_conn/sql_conn.dart';
-import 'sql_queries.dart';
-import 'firestore.dart';
-import 'package:page_transition/page_transition.dart';
-import 'package:flutter_polls/flutter_polls.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:login/firestore.dart';
 import 'login_page.dart';
 import 'email_verify.dart';
-import 'confession_posts.dart';
-import 'posts_page.dart';
-import 'newpost_page.dart';
 import 'voting_page.dart';
-import 'main.dart';
 
 class Signup extends StatefulWidget{
   @override
@@ -51,8 +38,8 @@ class _Mysignup extends State<Signup>{
         appBar: AppBar(
           backgroundColor: Colors.blue,
           foregroundColor:Colors.white ,
-          title:Text("Secrets"),
-          titleTextStyle: TextStyle(fontStyle: (FontStyle.italic ),fontWeight: FontWeight.w500,fontSize:40 ),
+          title:const Text("Secrets"),
+          titleTextStyle: const TextStyle(fontStyle: (FontStyle.italic ),fontWeight: FontWeight.w500,fontSize:40 ),
           titleSpacing: 110,
           toolbarHeight: height*0.2,
           toolbarOpacity: 0.1,
@@ -63,14 +50,14 @@ class _Mysignup extends State<Signup>{
           ),
         ),
         body:SingleChildScrollView(
-          padding: EdgeInsets.symmetric(horizontal: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 10),
           child:Column(
 
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              SizedBox(height: 30,),
-              Text('Signup',style: TextStyle(fontSize:25,fontWeight: FontWeight.bold ),textAlign: TextAlign.left,),
-              SizedBox(height: 40,),
+              const SizedBox(height: 30,),
+              const Text('Signup',style: TextStyle(fontSize:25,fontWeight: FontWeight.bold ),textAlign: TextAlign.left,),
+              const SizedBox(height: 40,),
               TextFormField(
                 controller: nameController,
                 //onChanged: ((v) {emailController.text=v;}),
@@ -79,25 +66,25 @@ class _Mysignup extends State<Signup>{
                 decoration: InputDecoration(
                   suffixIcon: const Icon(Icons.person,color: Colors.blue,),
                   labelText: "username",
-                  errorText: error!=null?error:null,
+                  errorText: error??error,
                   hintText: 'please enter your username',
                   border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(20.0),gapPadding: 4),
                 ),
               ),
-              SizedBox(height: 20,),
+              const SizedBox(height: 20,),
               DropdownButtonFormField(items: items.map((values){return DropdownMenuItem(value:values,child:Text(values));}).toList() , onChanged:(String? new_value){
                 setState(() {
                   _value=new_value!;
                 });
-              },value:_value,hint:Text("university Email domain"),borderRadius:(BorderRadius.circular(20.0)) ,decoration:InputDecoration(labelText:"University Domain",border: OutlineInputBorder(borderRadius: BorderRadius.circular(20.0)),suffixIcon: Icon(Icons.school_outlined,color: Colors.blue,) ,)),
-              SizedBox(height: 20,),
+              },value:_value,hint:const Text("university Email domain"),borderRadius:(BorderRadius.circular(20.0)) ,decoration:InputDecoration(labelText:"University Domain",border: OutlineInputBorder(borderRadius: BorderRadius.circular(20.0)),suffixIcon: Icon(Icons.school_outlined,color: Colors.blue,) ,)),
+              const SizedBox(height: 20,),
               DropdownButtonFormField(items: gitems.map((values){return DropdownMenuItem(value:values,child:Text(values));}).toList() , onChanged:(String? new_value){
                 setState(() {
                   g_value=new_value!;
                 });
-              },value:g_value,hint:Text("Gender"),borderRadius:(BorderRadius.circular(20.0)) ,decoration:InputDecoration(labelText:"Gender",border: OutlineInputBorder(borderRadius: BorderRadius.circular(20.0)),suffixIcon: Icon(Icons.boy,color: Colors.blue,) ,)),
-              SizedBox(height:20),
+              },value:g_value,hint:const Text("Gender"),borderRadius:(BorderRadius.circular(20.0)) ,decoration:InputDecoration(labelText:"Gender",border: OutlineInputBorder(borderRadius: BorderRadius.circular(20.0)),suffixIcon: Icon(Icons.boy,color: Colors.blue,) ,)),
+              const SizedBox(height:20),
               TextFormField(
                 controller: emailController,
                 //onChanged: ((v) {emailController.text=v;}),
@@ -111,7 +98,7 @@ class _Mysignup extends State<Signup>{
                       borderRadius: BorderRadius.circular(20.0),gapPadding: 4),
                 ),
               ),
-              SizedBox(height: 20,),
+              const SizedBox(height: 20,),
               TextField(
                 obscureText: _obscure ,
                 controller: passwordcontroller,
@@ -129,11 +116,11 @@ class _Mysignup extends State<Signup>{
                       borderRadius: BorderRadius.circular(20.0),gapPadding: 4),
                 ),
               ),
-              SizedBox(height: 25,),
+              const SizedBox(height: 25,),
               Builder(builder: (BuildContext context){
                 return(
                     Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 20.0) ,
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0) ,
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -147,7 +134,7 @@ class _Mysignup extends State<Signup>{
                               setState(() {
                                 isloading = true;
                               });
-                              a = await firebase_usersignup(emailController.text,passwordcontroller.text);
+                              a = await firebaseUserSignup(emailController.text,passwordcontroller.text);
                               final user1=FirebaseAuth.instance.currentUser;
                               user2= user1?.emailVerified;
                               user1?.updateDisplayName(nameController.text);
@@ -159,16 +146,16 @@ class _Mysignup extends State<Signup>{
                                 //isloading=!isloading;
                               });}
                             if (a=="successful") {
-                              errormessage(Colors.green, a, context);
+                              Fluttertoast.showToast(msg: "signup successful");
                               if (user2==true){
-                                Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) =>  Myconfessionpage()));}
+                                Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) =>  Voting()));}
                               else{Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const Emailverify()));}
                             }
                             //Navigator.push(context,  MaterialPageRoute(builder: (context) => const MyApp1()));
                             else{
-                              errormessage(Colors.red, a, context);
+                              Fluttertoast.showToast(msg: a);
                             }
-                          },child: const Text("Signup",style:TextStyle(fontSize:20,fontWeight: FontWeight.w500,fontStyle: FontStyle.italic),),style: ButtonStyle(shape: MaterialStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(30.0)))),
+                          },style: ButtonStyle(shape: MaterialStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(30.0)))),child: const Text("Signup",style:TextStyle(fontSize:20,fontWeight: FontWeight.w500,fontStyle: FontStyle.italic),),
                           ): const Center(child: CircularProgressIndicator(),),
                           GestureDetector(child:const Text("Already have a account login?"),onTap: ()  { Navigator.push(context , MaterialPageRoute(builder: (context)=> const Mylogin()));
                           },)

@@ -2,7 +2,6 @@
 
 
 import 'dart:async';
-import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -10,11 +9,9 @@ import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
-import 'package:login/main.dart';
 
 // signin function
-Future<String> firebase_usersignin(useremail,userpassword) async {
+Future<String> firebaseUserSignin(useremail,userpassword) async {
   var  result;
   try{
     final user=await FirebaseAuth.instance.signInWithEmailAndPassword(email:useremail , password: userpassword);
@@ -27,18 +24,18 @@ Future<String> firebase_usersignin(useremail,userpassword) async {
     else{
       result="something went wrong";
     }
-  } on PlatformException catch (e) {
+  } catch (e) {
     result =e.toString();
   }
   return result;
 }
 
 // user signup function.
-Future<String> firebase_usersignup(useremail,userpassword) async {
+Future<String> firebaseUserSignup(useremail,userpassword) async {
   var  result;
   try{
     final user=await FirebaseAuth.instance.createUserWithEmailAndPassword(email:useremail , password: userpassword);
-    final user1= await FirebaseAuth.instance.currentUser;
+    final user1= FirebaseAuth.instance.currentUser;
     await user1?.sendEmailVerification();
     result="successful";
   } on FirebaseException catch(e){
@@ -56,8 +53,8 @@ Future<String> firebase_usersignup(useremail,userpassword) async {
 }
 
 //user post like status
-Future<bool> like_status(id) async{
-  final user= await FirebaseAuth.instance.currentUser;
+Future<bool> likeStatus(id) async{
+  final user= FirebaseAuth.instance.currentUser;
   var uid=user?.uid;
   final data=await FirebaseFirestore.instance.collection(id+"like").doc(uid).get();
   if (data.exists){
@@ -68,8 +65,8 @@ Future<bool> like_status(id) async{
 
 // user liking or disliking the post.
 // it is depreciated due to wrong database management update it with newonlikepress function for faster and better management
-onlikepress(liked ,id) async {
-  final user =await FirebaseAuth.instance.currentUser;
+onLikePress(liked ,id) async {
+  final user =FirebaseAuth.instance.currentUser;
   var uid=user?.uid;
   if (liked==true){
     await FirebaseFirestore.instance.collection("posts").doc(id).update({"likes":FieldValue.increment(-1)});
@@ -80,7 +77,7 @@ onlikepress(liked ,id) async {
   }
 }
 
-newonlikepress(documentid,likestatus,userid,postfeature, bool isfieldavailable) async{
+newOnLikePress(documentid,likestatus,userid,postfeature, bool isfieldavailable) async{
   if(likestatus==true){
     try{
     await FirebaseFirestore.instance.collection(postfeature).doc(documentid).update({"like":FieldValue.increment(-1)});
@@ -90,11 +87,11 @@ newonlikepress(documentid,likestatus,userid,postfeature, bool isfieldavailable) 
     try{
     await FirebaseFirestore.instance.collection(postfeature).doc(documentid).update({"like":FieldValue.increment(1)});
     await FirebaseFirestore.instance.collection(postfeature).doc(documentid).update({"userlikes":FieldValue.arrayUnion([userid])});
-    }on Exception catch(e){ errormessage(Colors.red, "something went wrong", "hi");}
+    }on Exception catch(e){ Fluttertoast.showToast(msg: "something went wrong",timeInSecForIosWeb: 3,backgroundColor: Colors.red);}
   }
 }
 
-get_post_ids () async {
+getPostIds () async {
   try{
     List a=[];
      QuerySnapshot posts =  await FirebaseFirestore.instance.collection("posts").get();
@@ -108,7 +105,7 @@ get_post_ids () async {
   }
 }
 
-read_post(String ids , key) async{
+readPost(String ids , key) async{
  try{
    final a = await FirebaseFirestore.instance.collection('users').doc(ids).get();
    final data = a.data() as Map<String,dynamic> ;
@@ -121,7 +118,7 @@ read_post(String ids , key) async{
 
 //dynamic link generator
 firebasedynamiclink(path,documentid) async{
-  final dynamiclinkparams = DynamicLinkParameters(link: Uri.parse("https://openupra.page.link/"+path+"/"+documentid), uriPrefix: "https://openupra.page.link",
+  final dynamiclinkparams = DynamicLinkParameters(link: Uri.parse("https://openupra.page.link/$path/$documentid"), uriPrefix: "https://openupra.page.link",
     androidParameters: const AndroidParameters(packageName: "com.example.login.login"),);
   try{final dynamiclink= await FirebaseDynamicLinks.instance.buildLink(dynamiclinkparams).timeout(Duration(seconds: 5));
   return dynamiclink.normalizePath().toString();}
@@ -142,7 +139,7 @@ firebasedynamiclink(path,documentid) async{
 }
 
 // handling the user option press.
-onsamevotepress(List uservoted,documentid,_ismultiple,_issingletime,indexofpress,optionslength,votecountlist,_isvoted,) async{
+onSameVotePress(List uservoted,documentid,_ismultiple,_issingletime,indexofpress,optionslength,votecountlist,_isvoted,) async{
   var user= await FirebaseAuth.instance.currentUser;
   var uid= user?.uid;
   
@@ -156,7 +153,7 @@ onsamevotepress(List uservoted,documentid,_ismultiple,_issingletime,indexofpress
     try{
     await FirebaseFirestore.instance.collection("polls").doc(documentid).update({"votes":votecountlist});
     await FirebaseFirestore.instance.collection("polls").doc(documentid).update(({"userresponses.$uid":response}));
-    } on Exception catch (e){errormessage(Colors.red, "something went wrong", "context");}
+    } on Exception catch (e){Fluttertoast.showToast(msg: "something went wrong",timeInSecForIosWeb: 3,backgroundColor: Colors.red);}
     return true;
   }
   if( _ismultiple==false && _issingletime==false){
@@ -173,7 +170,7 @@ onsamevotepress(List uservoted,documentid,_ismultiple,_issingletime,indexofpress
     try{
     await FirebaseFirestore.instance.collection("polls").doc(documentid).update({"votes":votecountlist});
     await FirebaseFirestore.instance.collection("polls").doc(documentid).update(({"userresponses.$uid":response}));
-    }on Exception catch(e){errormessage(Colors.red, "something went wrong", "context");}
+    }on Exception catch(e){Fluttertoast.showToast(msg: "something went wrong",backgroundColor: Colors.red,timeInSecForIosWeb: 3,);}
     return true;
   }
 
@@ -196,42 +193,42 @@ onsamevotepress(List uservoted,documentid,_ismultiple,_issingletime,indexofpress
 
 // realtime database functions be ready.........
 
-decodingdata(final data){
-  final map = data as Map;
-  List<types.Message> messages=[];
-  for (var value in map.values){
-    if (value["status"]=="read"){
-    messages.add(
-      types.TextMessage(author: types.User(id:value["author"]),
-          id:value["id"] ,
-          text: value["text"],
-      createdAt: value["createdAt"],
-      status: types.Status.seen)
-    );}
-    if (value["status"]=="delivered"){
-      messages.add(
-          types.TextMessage(author: types.User(id:value["author"]),
-              id:value["id"] ,
-              text: value["text"],
-              createdAt: value["createdAt"],
-              status: types.Status.delivered)
-      );
-    }
-    if (value["status"]=="sent"){
-      messages.add(
-          types.TextMessage(author: types.User(id:value["author"]),
-              id:value["id"] ,
-              text: value["text"],
-              createdAt: value["createdAt"],
-              status: types.Status.sent)
-      );
-    }
-  }
-  print("data from the server decoded successfully ");
-  return messages;
-}
+// decodingdata(final data){
+//   final map = data as Map;
+//   List<types.Message> messages=[];
+//   for (var value in map.values){
+//     if (value["status"]=="read"){
+//     messages.add(
+//       types.TextMessage(author: types.User(id:value["author"]),
+//           id:value["id"] ,
+//           text: value["text"],
+//       createdAt: value["createdAt"],
+//       status: types.Status.seen)
+//     );}
+//     if (value["status"]=="delivered"){
+//       messages.add(
+//           types.TextMessage(author: types.User(id:value["author"]),
+//               id:value["id"] ,
+//               text: value["text"],
+//               createdAt: value["createdAt"],
+//               status: types.Status.delivered)
+//       );
+//     }
+//     if (value["status"]=="sent"){
+//       messages.add(
+//           types.TextMessage(author: types.User(id:value["author"]),
+//               id:value["id"] ,
+//               text: value["text"],
+//               createdAt: value["createdAt"],
+//               status: types.Status.sent)
+//       );
+//     }
+//   }
+//   print("data from the server decoded successfully ");
+//   return messages;
+// }
 
-userstatus(String status) async{
-  String uid = FirebaseAuth.instance.currentUser!.uid;
-  await FirebaseFirestore.instance.collection("Anonymouschat").doc("123456789").update({uid:status});
-}
+// userstatus(String status) async{
+//   String uid = FirebaseAuth.instance.currentUser!.uid;
+//   await FirebaseFirestore.instance.collection("Anonymouschat").doc("123456789").update({uid:status});
+// }

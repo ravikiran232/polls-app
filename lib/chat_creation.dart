@@ -1,4 +1,0 @@
-
-
-creatchatroomid(useruid,distantuid){
-}

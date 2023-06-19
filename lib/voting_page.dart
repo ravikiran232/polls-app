@@ -4,38 +4,19 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/rendering.dart';
-import 'package:flutter/services.dart';
 import 'package:login/my_polls.dart';
-import 'firebase_options.dart';
-import 'package:animated_splash_screen/animated_splash_screen.dart';
-import 'package:show_more_text_popup/show_more_text_popup.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'package:sql_conn/sql_conn.dart';
-import 'package:sliding_up_panel/sliding_up_panel.dart';
-import 'package:read_more_text/read_more_text.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:date_time_picker/date_time_picker.dart';
 import 'package:lottie/lottie.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:colours/colours.dart';
-import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
-import 'sql_queries.dart';
 import 'firestore.dart';
-import 'package:page_transition/page_transition.dart';
-import 'package:flutter_polls/flutter_polls.dart';
-import 'login_page.dart';
-import 'signup_page.dart';
-import 'email_verify.dart';
-import 'confession_posts.dart';
-import 'posts_page.dart';
-import 'newpost_page.dart';
 import 'main.dart';
 
-class voting extends StatelessWidget{
+class Voting extends StatelessWidget{
+  const Voting({super.key});
+
   @override
   Widget build(BuildContext context){
     return MaterialApp(
@@ -179,25 +160,25 @@ class _votingpage extends State<votingpage> with TickerProviderStateMixin{
           elevation: 4,
           backgroundColor:Colors.indigo[400],
           foregroundColor: Colors.white,
-          leading: IconButton(icon: Icon(Icons.arrow_back),onPressed:(){Navigator.of(context).pop();} ,),
+          leading: IconButton(icon: const Icon(Icons.arrow_back),onPressed:(){Navigator.of(context).pop();} ,),
           actions: [
             popupmenu(context, "sampleid")
           ],
           title:  const Text("Polls"),
           //shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),),
-    bottom: TabBar(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
+    bottom: const TabBar(
+        padding: EdgeInsets.symmetric(horizontal: 20),
         isScrollable: true,
         //indicator: BoxDecoration(borderRadius:BorderRadius.circular(20),shape: BoxShape.rectangle,color: Colors.blue),
         indicatorColor: Colors.white,
         indicatorWeight: 3.5,
         labelColor: Colors.white,
         unselectedLabelColor: Colors.white,
-        labelStyle: const TextStyle(fontSize: 15,fontWeight: FontWeight.bold),
+        labelStyle: TextStyle(fontSize: 15,fontWeight: FontWeight.bold),
         tabs: [
-          Tab(child:Row(mainAxisAlignment:MainAxisAlignment.center,children: const [Icon(Icons.local_fire_department_sharp),SizedBox(width: 5,),Text("Trending")],)),
-          Tab(child:Row(mainAxisAlignment:MainAxisAlignment.center,children: const [Icon(Icons.poll_sharp),SizedBox(width: 5,),Text("LIVE")],)),
-          Tab(child:Row(mainAxisAlignment:MainAxisAlignment.center,children: const [Icon(Icons.timelapse),SizedBox(width: 5,),Text("Ended")],))
+          Tab(child:Row(mainAxisAlignment:MainAxisAlignment.center,children: [Icon(Icons.local_fire_department_sharp),SizedBox(width: 5,),Text("Trending")],)),
+          Tab(child:Row(mainAxisAlignment:MainAxisAlignment.center,children: [Icon(Icons.poll_sharp),SizedBox(width: 5,),Text("LIVE")],)),
+          Tab(child:Row(mainAxisAlignment:MainAxisAlignment.center,children: [Icon(Icons.timelapse),SizedBox(width: 5,),Text("Ended")],))
         ] ),),
 
         body: TabBarView(
@@ -214,7 +195,7 @@ class _votingpage extends State<votingpage> with TickerProviderStateMixin{
           ],
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-        floatingActionButton: FloatingActionButton(backgroundColor: Colors.blue,elevation: 3,child: Icon(Icons.add),onPressed: (){navigatenewpoll(context);},),
+        floatingActionButton: FloatingActionButton(backgroundColor: Colors.blue,elevation: 3,child: const Icon(Icons.add),onPressed: (){navigatenewpoll(context);},),
       )
       ),
       );
@@ -223,7 +204,7 @@ class _votingpage extends State<votingpage> with TickerProviderStateMixin{
 }
 
 class optionforquestion extends StatefulWidget{
-  optionforquestion(this.documentid,this.option,this.multiple,this.index,this.uservoteresponse,this.singletime,this.optionslength,this.votecountlist,this.totalvotecount,this.uservoted,this.ended);
+  optionforquestion(this.documentid,this.option,this.multiple,this.index,this.uservoteresponse,this.singletime,this.optionslength,this.votecountlist,this.totalvotecount,this.uservoted,this.ended, {super.key});
   var option,documentid;
   bool multiple , ended;
   int index,optionslength;
@@ -242,14 +223,14 @@ class _optionforquestion extends State<optionforquestion>{
     return InkWell(onTap: ()async{
       if (!widget.ended){
         List dummyuservoterresponse=
-     await onsamevotepress(widget.uservoteresponse,widget.documentid, widget.multiple, widget.singletime, widget.index, widget.optionslength,widget.votecountlist,widget.uservoted,);
+     await onSameVotePress(widget.uservoteresponse,widget.documentid, widget.multiple, widget.singletime, widget.index, widget.optionslength,widget.votecountlist,widget.uservoted,);
       }
       else{Fluttertoast.showToast(msg: "This poll has been ended",backgroundColor: Colors.red,timeInSecForIosWeb: 3);}
 
    },
         child:Stack(
           children:[
-            AnimatedContainer(duration: Duration(milliseconds: 300),
+            AnimatedContainer(duration: const Duration(milliseconds: 300),
               margin: const EdgeInsets.symmetric(vertical: 5,horizontal: 10),
               decoration: BoxDecoration(shape: BoxShape.rectangle,borderRadius: BorderRadius.circular(10),color: uservoted?Colors.blue.withOpacity((widget.votecountlist[widget.index]/widget.totalvotecount)):Colors.white,),
               width: uservoted?size*(widget.votecountlist[widget.index]/widget.totalvotecount):0,
@@ -263,7 +244,7 @@ class _optionforquestion extends State<optionforquestion>{
               padding: const EdgeInsets.symmetric(horizontal: 10),
               decoration: BoxDecoration(shape: BoxShape.rectangle,borderRadius: BorderRadius.circular(12),border: Border.all(color: value?Colors.blue:Colors.black54),),
               child:
-              Row(children:[ value?const Icon(Icons.check):SizedBox(width: 5,),Text(widget.option.toString()),uservoted?Row(children:[SizedBox(width:15),Text(double.parse(((widget.votecountlist[widget.index]/widget.totalvotecount)*100).toStringAsFixed(1)).toString()+"%",style: TextStyle(fontWeight: FontWeight.bold),)]):SizedBox(height: 5,)]),
+              Row(children:[ value?const Icon(Icons.check):const SizedBox(width: 5,),Text(widget.option.toString()),uservoted?Row(children:[const SizedBox(width:15),Text("${double.parse(((widget.votecountlist[widget.index]/widget.totalvotecount)*100).toStringAsFixed(1))}%",style: const TextStyle(fontWeight: FontWeight.bold),)]):const SizedBox(height: 5,)]),
             ),
          ],
         ));
@@ -392,7 +373,7 @@ class _newpollpage extends State<newpollpage>{
                             gravity: ToastGravity.BOTTOM);
                           }
                         },
-                        child:Row(children: const [Icon(Icons.add,color: Colors.blue,), SizedBox(width: 5,),Text("Add Option",style: TextStyle(color: Colors.blue),)],)
+                        child:const Row(children: [Icon(Icons.add,color: Colors.blue,), SizedBox(width: 5,),Text("Add Option",style: TextStyle(color: Colors.blue),)],)
                       ),
                         InkWell(
                             onTap: (){
@@ -410,9 +391,9 @@ class _newpollpage extends State<newpollpage>{
                                     gravity: ToastGravity.BOTTOM);
                               }
                             },
-                            child:Row(children: const [Icon(Icons.remove,color: Colors.red,), SizedBox(width: 5,),Text("remove Option",style: TextStyle(color: Colors.red),)],)
+                            child:const Row(children: [Icon(Icons.remove,color: Colors.red,), SizedBox(width: 5,),Text("remove Option",style: TextStyle(color: Colors.red),)],)
                         ),]),
-                      SizedBox(height:8),
+                      const SizedBox(height:8),
                       DateTimePicker(type:DateTimePickerType.dateTime,
                           validator: _timevalidator,
                           onChanged: (dt) => datetime=dt,
@@ -420,9 +401,9 @@ class _newpollpage extends State<newpollpage>{
                             labelText: "deadline",
                             border: OutlineInputBorder(borderRadius: BorderRadius.circular(15))
                           ),
-                          initialDate: DateTime.now().add(Duration(days:1)),
+                          initialDate: DateTime.now().add(const Duration(days:1)),
                       firstDate: DateTime.now() ,
-                      lastDate: DateTime.now().add(Duration(days:30)),),
+                      lastDate: DateTime.now().add(const Duration(days:30)),),
 
 
                       Row(
@@ -436,7 +417,7 @@ class _newpollpage extends State<newpollpage>{
                         }
                       ),const Expanded(child:Text("Make the post visible to only those who have the link.",
                           ))]),
-                SizedBox(height:5),
+                const SizedBox(height:5),
                 Row(
                 children:[
                 Checkbox(
@@ -448,7 +429,7 @@ class _newpollpage extends State<newpollpage>{
 
                   }
                 ),const Text("allow choosing of many options")]),
-                      SizedBox(height: 5,),
+                      const SizedBox(height: 5,),
                       Row(
                           children:[
                             Checkbox(
@@ -496,7 +477,7 @@ Widget showpost({documentid:null,trending:false,ended:false,optionslengthlarge:f
             List<Widget> _widget=((fetchcondition.map((items){
               print(items.metadata.isFromCache?"From local":"from internet");
               return pollpostdesign(context,items.id, items["question"], items["options"],items["like"], items["votes"], items['username'],items["multipleopt"],items['singletime'],items["userid"],trending,ended,items["endtime"],false,mypolls,items['userlikes'],items['userresponses'],uid);})))!.toList();
-            _widget.add(lazyloading?CircularProgressIndicator(strokeWidth: 3,):SizedBox.shrink());
+            _widget.add(lazyloading?const CircularProgressIndicator(strokeWidth: 3,):const SizedBox.shrink());
       return Column(
         children: _widget
 
@@ -515,7 +496,7 @@ Widget showpost({documentid:null,trending:false,ended:false,optionslengthlarge:f
             alignment: Alignment.center,),
             const SizedBox(height: 30,),
             ElevatedButton(onPressed: (){},
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.red,shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),fixedSize: Size(150, 50)),
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.red,shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),fixedSize: const Size(150, 50)),
                 child: const Text("Reload",style: TextStyle(fontWeight: FontWeight.bold,color: Colors.white),))]);
           }
         else{
@@ -525,12 +506,10 @@ Widget showpost({documentid:null,trending:false,ended:false,optionslengthlarge:f
             Shimmer.fromColors(
             baseColor: Colors.yellow,
                 highlightColor: Colors.red,
-                child: Container(
             child:Card(
                 margin: const EdgeInsets.fromLTRB(15, 10, 15, 10),
             elevation: 5,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-             ),
             ),
             )).toList(),
           );
@@ -557,23 +536,22 @@ Widget showpost({documentid:null,trending:false,ended:false,optionslengthlarge:f
   }
 
 Widget pollpostdesign(BuildContext context,documentid,String question,List options,likes,List votes,username,bool ismultiple,bool singletime,userid,bool trending,bool ended,Timestamp endtime,bool optionslengthlarge,bool mypolls,List likesarray,Map userresponses,String uid) {
-  var _isuservoteresponse; String lefttime=endtime.toDate().difference(DateTime.now()).inDays.toString()+" Days";
+  var _isuservoteresponse; String lefttime="${endtime.toDate().difference(DateTime.now()).inDays} Days";
   bool isoptionslenthlarge= (options.length>4);
   if(endtime.toDate().difference(DateTime.now()).inSeconds<0){ended=true;}
   if (endtime.toDate().difference(DateTime.now()).inDays==0){
     if(endtime.toDate().difference(DateTime.now()).inHours>0){
       lefttime="${endtime.toDate().difference(DateTime.now()).inHours} Hours";
-    }else{lefttime=endtime.toDate().difference(DateTime.now()).inMinutes.toString()+" min";}
+    }else{lefttime="${endtime.toDate().difference(DateTime.now()).inMinutes} min";}
   }
   if(optionslengthlarge){
     isoptionslenthlarge=false;
   }
     return InkWell(splashColor:Colors.lightGreenAccent,onTap:(){
     },
-    child:Container(
     child:Card(
       color: Colours.white,
-    margin: EdgeInsets.fromLTRB(15, 10, 15, 10),
+    margin: const EdgeInsets.fromLTRB(15, 10, 15, 10),
     elevation: 5,
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
     child:
@@ -596,27 +574,27 @@ Widget pollpostdesign(BuildContext context,documentid,String question,List optio
   top:-20,child: Card(elevation: 6,
   //shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
   child: Container(height: 35,width: 80,alignment: Alignment.topRight,
-  decoration: BoxDecoration(gradient: LinearGradient(colors: [Colors.redAccent,Colors.amber],begin: Alignment.topLeft,end: Alignment.bottomRight))
+  decoration: const BoxDecoration(gradient: LinearGradient(colors: [Colors.redAccent,Colors.amber],begin: Alignment.topLeft,end: Alignment.bottomRight))
   ,child: Center(   child:Shimmer.fromColors(baseColor: Colors.white,highlightColor: Colors.grey,child:  const Text("Trending",style: TextStyle(fontWeight: FontWeight.bold,color: Colors.white),),),),))):const Text(""),
   Column(
   children: [
 
 
-  Padding(padding:EdgeInsets.fromLTRB(20, 10, 10, 10),
-  child:Row( children: [CircleAvatar(radius: 20,foregroundImage: NetworkImage("https://thumbs.dreamstime.com/b/girl-vector-icon-elements-mobile-concept-web-apps-thin-line-icons-website-design-development-app-premium-pack-glyph-flat-148592081.jpg"),),SizedBox(width: 5,),Text(username,style: TextStyle(color: Colors.black54),),Spacer(),mypolls?mypollspopupmenu(context, documentid):popupmenu(context, documentid)],)),
+  Padding(padding:const EdgeInsets.fromLTRB(20, 10, 10, 10),
+  child:Row( children: [const CircleAvatar(radius: 20,foregroundImage: NetworkImage("https://thumbs.dreamstime.com/b/girl-vector-icon-elements-mobile-concept-web-apps-thin-line-icons-website-design-development-app-premium-pack-glyph-flat-148592081.jpg"),),const SizedBox(width: 5,),Text(username,style: const TextStyle(color: Colors.black54),),const Spacer(),mypolls?mypollspopupmenu(context, documentid):popupmenu(context, documentid)],)),
 
-  Padding(padding:EdgeInsets.fromLTRB(10, 1, 10, 15),child:forlargequestions(context,question)),
+  Padding(padding:const EdgeInsets.fromLTRB(10, 1, 10, 15),child:forlargequestions(context,question)),
   Column(
   children: !isoptionslenthlarge?options.asMap().entries.map((items)=>optionforquestion(documentid,items.value,ismultiple,items.key,_isuservoteresponse!,singletime,options.length,votes,votecount,_isuservoted,ended)).toList():[largeoptioncontainer(context,documentid)]
   ),
-  SizedBox(height: 3,),
-  Row(children:[OutlinedButton(style:OutlinedButton.styleFrom(side:BorderSide(color: Colors.white),shape:RoundedRectangleBorder(borderRadius: BorderRadius.circular(15))),onPressed: (){newonlikepress(documentid, isliked, userid, "polls",_isuservoted);}, child: Column(children:[Icon(isliked?Icons.favorite:Icons.favorite_border_outlined,color: isliked?Colors.red:Colors.black,),Text(likes.toString()+" likes",style: TextStyle(color: Colors.black),)])), IconButton(onPressed: ()async{
+  const SizedBox(height: 3,),
+  Row(children:[OutlinedButton(style:OutlinedButton.styleFrom(side:const BorderSide(color: Colors.white),shape:RoundedRectangleBorder(borderRadius: BorderRadius.circular(15))),onPressed: (){newOnLikePress(documentid, isliked, userid, "polls",_isuservoted);}, child: Column(children:[Icon(isliked?Icons.favorite:Icons.favorite_border_outlined,color: isliked?Colors.red:Colors.black,),Text(likes.toString()+" likes",style: const TextStyle(color: Colors.black),)])), IconButton(onPressed: ()async{
   var linkresult=await firebasedynamiclink("polls",documentid );
   if (linkresult!=false || linkresult!="out"){
-  Share.share("express your opnion to the poll "+linkresult.toString());
+  Share.share("express your opnion to the poll $linkresult");
   }
   else{Fluttertoast.showToast(msg: "unable to generate link",backgroundColor: Colors.red,timeInSecForIosWeb: 3);}
-  }, icon:Icon(Icons.share)),SizedBox(width: 10,),ended?Text("Final Results",style: TextStyle(color: Colors.black54),):Text("Ends in:"+lefttime,style: TextStyle(color: Colors.black54),),SizedBox(width: 15,),Text("votes : "+votecount.toString(),style: TextStyle(color: Colors.black54),)
+  }, icon:const Icon(Icons.share)),const SizedBox(width: 10,),ended?const Text("Final Results",style: TextStyle(color: Colors.black54),):Text("Ends in:$lefttime",style: const TextStyle(color: Colors.black54),),const SizedBox(width: 15,),Text("votes : $votecount",style: const TextStyle(color: Colors.black54),)
   ])
   ],
   )]);
@@ -628,7 +606,6 @@ Widget pollpostdesign(BuildContext context,documentid,String question,List optio
   //   else{return Text("An error Occured",style: TextStyle(fontWeight: FontWeight.bold,color: Colors.red),);}
   // }),
   }),
-    ),
     )
     );
 }
@@ -682,11 +659,11 @@ class _individualpollpage extends State<individualpollpage>{
   return Builder(
       builder:(context)=>Scaffold(
         backgroundColor: Colors.transparent,
-        appBar: AppBar(title: Text("Poll"),
+        appBar: AppBar(title: const Text("Poll"),
           backgroundColor:Colors.indigo[400],
           foregroundColor: Colors.white,
         leading: IconButton(onPressed: () => Navigator.of(context,rootNavigator: true).pop()
-            , icon: Icon(Icons.arrow_back)),),
+            , icon: const Icon(Icons.arrow_back)),),
         body: SingleChildScrollView(child: showpost(documentid: widget.documentid,optionslengthlarge: true,fetchcondition:null,individualfetch: !loading?_feed:null,error: error,ended: !loading?!(_feed["endtime"].toDate().difference(DateTime.now()).inSeconds>0):true,uid:uid),),
       )
       );}
@@ -697,7 +674,7 @@ navigatenewpoll (c){
 }
 
 String? _validatequestion(String? value){
-  if (value!.length==0){
+  if (value!.isEmpty){
     return "* Required Field";
   }
   else if (value!.length<=5){
@@ -723,7 +700,7 @@ String? _validateoption(String? value,List controllers){
 }
 
 String? _timevalidator(String? value){
-  if(value!.length==0){
+  if(value!.isEmpty){
     return "*Required Field";
   }
   return null;
@@ -759,7 +736,7 @@ pushingtofirestore(question,List optionslist,time,multipleoption,publicview,sing
       "singletime":singletime,
       "userlikes":[],
       "userresponses":{},
-    }).timeout(Duration(seconds: 6));
+    }).timeout(const Duration(seconds: 6));
     return newpoll.id;
   }on TimeoutException catch(e){return "out";} on Exception catch(e){
     return false;
@@ -774,20 +751,20 @@ showloadingdilog(BuildContext context,question, optionslist, time, multipleoptio
       //have to use dialog for customisation after finding better loading animations.
       builder: (_)=>AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-        title: Text("Hang On..."),
+        title: const Text("Hang On..."),
         content: FutureBuilder (
           future:pushingtofirestore(question, optionslist, time, multipleoption, publicview,singletime),
           builder: (context,future){
             if (future.hasData){
-              if (future.data!=false && future.data!="out"){document_id=future.data;return Text(!publicview?"Successfully Posted":"Successfully Posted.Share your link by using share button",style:TextStyle(fontWeight: FontWeight.bold,color: Colors.green));}
-              if (future.data==false){return Text("Something went wrong",style: TextStyle(fontWeight: FontWeight.bold,color: Colors.red),);}
-              else{return Text("An error Occured",style: TextStyle(fontWeight: FontWeight.bold,color: Colors.red),);}
+              if (future.data!=false && future.data!="out"){document_id=future.data;return Text(!publicview?"Successfully Posted":"Successfully Posted.Share your link by using share button",style:const TextStyle(fontWeight: FontWeight.bold,color: Colors.green));}
+              if (future.data==false){return const Text("Something went wrong",style: TextStyle(fontWeight: FontWeight.bold,color: Colors.red),);}
+              else{return const Text("An error Occured",style: TextStyle(fontWeight: FontWeight.bold,color: Colors.red),);}
             }
             else if (future.hasData==false){
               return (Container(height:40,alignment: Alignment.center,color:Colors.white,child: const CircularProgressIndicator(),));
             }
 
-            else{return Text("An error Occured",style: TextStyle(fontWeight: FontWeight.bold,color: Colors.red),);}
+            else{return const Text("An error Occured",style: TextStyle(fontWeight: FontWeight.bold,color: Colors.red),);}
           },
 
         ),
@@ -796,12 +773,12 @@ showloadingdilog(BuildContext context,question, optionslist, time, multipleoptio
             //final MethodChannel _method = new MethodChannel("share");
             var linkresult=await firebasedynamiclink("polls",document_id );
             if (linkresult!=false || linkresult!="out"){
-              Share.share("express your opnion to the poll "+linkresult.toString());
+              Share.share("express your opnion to the poll $linkresult");
             }
             else{Fluttertoast.showToast(msg: "unable to generate link",backgroundColor: Colors.red,timeInSecForIosWeb: 3);}
 
-          }, child:Text("share")),
-          TextButton(onPressed: (){Navigator.of(context).popUntil((_)=>count++>=2);}, child: Text("ok"))
+          }, child:const Text("share")),
+          TextButton(onPressed: (){Navigator.of(context).popUntil((_)=>count++>=2);}, child: const Text("ok"))
         ],
       ));
 }
@@ -816,7 +793,7 @@ Widget largeoptioncontainer(BuildContext context ,documentid){
           child:Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children:[
-             Container(child:const Text("This question contains too many options if you want to see click on view"),width: 180,),
+             const SizedBox(width: 180,child:Text("This question contains too many options if you want to see click on view"),),
             TextButton(onPressed: (){Navigator.of(context).push(MaterialPageRoute(builder: (context)=>individualpoll(documentid,true)));}, child: const Text("View",style: TextStyle(color: Colors.blue,),))
           ]
         ),
@@ -827,22 +804,22 @@ Widget largeoptioncontainer(BuildContext context ,documentid){
 Widget forlargequestions(BuildContext context,String question) {
   if (question.length>80){
     return RichText(text: TextSpan(
-      style: TextStyle(color: Colors.black,fontWeight: FontWeight.bold),
+      style: const TextStyle(color: Colors.black,fontWeight: FontWeight.bold),
       text: question.substring(0,80)+"...",
       children: [
-        TextSpan(text: "Readmore",style: TextStyle(color: Colors.blue,fontWeight: FontWeight.bold),
+        TextSpan(text: "Readmore",style: const TextStyle(color: Colors.blue,fontWeight: FontWeight.bold),
         recognizer:TapGestureRecognizer()..onTap=()=>
         showDialog(context: context, builder: (_)=>Dialog(
           elevation: 5,
           child:Container(
             width: 150,
-            constraints: BoxConstraints(maxHeight: 450),
+            constraints: const BoxConstraints(maxHeight: 450),
             decoration: BoxDecoration(borderRadius: BorderRadius.circular(10)),
-            child: SingleChildScrollView(padding: EdgeInsets.symmetric(horizontal: 10),
+            child: SingleChildScrollView(padding: const EdgeInsets.symmetric(horizontal: 10),
             child: Column(children: [
               Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [Text("Question",style: TextStyle(fontWeight: FontWeight.bold),),IconButton(onPressed: (){Navigator.of(context,rootNavigator: true).pop();}, icon: Icon(Icons.close,color: Colors.black,))],),
-              SizedBox(height: 5,),
+              children: [const Text("Question",style: TextStyle(fontWeight: FontWeight.bold),),IconButton(onPressed: (){Navigator.of(context,rootNavigator: true).pop();}, icon: const Icon(Icons.close,color: Colors.black,))],),
+              const SizedBox(height: 5,),
               Text(question)
             ],)),
           ) ,
@@ -850,7 +827,7 @@ Widget forlargequestions(BuildContext context,String question) {
       ]
     ));
   }
-  else{return Text(question,softWrap: true,style: TextStyle(fontWeight: FontWeight.bold),);}
+  else{return Text(question,softWrap: true,style: const TextStyle(fontWeight: FontWeight.bold),);}
 }
 
 // ReadMoreText(question,trimLines: 3,

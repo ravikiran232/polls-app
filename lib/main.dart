@@ -4,22 +4,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'firebase_options.dart';
-import 'package:animated_splash_screen/animated_splash_screen.dart';
-
 import 'package:url_launcher/url_launcher.dart';
-import 'package:page_transition/page_transition.dart';
-import 'homepage_sell.dart';
 import 'login_page.dart';
-import 'signup_page.dart';
-import 'email_verify.dart';
-import 'confession_posts.dart';
-import 'posts_page.dart';
-import 'newpost_page.dart';
 import 'voting_page.dart';
 import "my_polls.dart";
 
@@ -43,6 +33,12 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler,);
+  FirebaseMessaging.instance.getToken().then((event)=>print(event));
+  FirebaseMessaging.instance.onTokenRefresh.listen((event) async {
+    print("pushing token to Firestore");
+    String userid= FirebaseAuth.instance.currentUser!.uid;
+    await FirebaseFirestore.instance.collection("users").doc(userid).update({"token":event});
+  });
   final PendingDynamicLinkData? initialLink = await FirebaseDynamicLinks.instance.getInitialLink();
   print(initialLink);
   if (initialLink!=null){
@@ -51,16 +47,10 @@ void main() async {
     List pathfragments= deepLink.path.split("/");
     runApp(votingpage());
   }
-  runApp(Home());
+  runApp(const Mylogin());
 
 }
 
-errormessage (_color,text,c,{duration =2}){
-  return Fluttertoast.showToast(msg:  text,
-    timeInSecForIosWeb: duration,
-    backgroundColor: _color,);
-
-}
 
 popupmenu (c,id){
   return PopupMenuButton(
@@ -78,7 +68,7 @@ popupmenu (c,id){
             child: Text("contact us"),
           ),
 
-          const PopupMenuItem(child: Text("my polls"),value: 2,)
+          const PopupMenuItem(value: 2,child: Text("my polls"),)
 
         ];
       },
@@ -97,9 +87,9 @@ popupmenu (c,id){
                 TextButton(
                   onPressed: () async{
                     try{await FirebaseFirestore.instance.collection("posts").doc(id).update({"report":FieldValue.increment(1)});
-                    errormessage(Colors.green, "submitted successfully", c);
-                    Future.delayed(Duration(seconds:1 ));
-                    Navigator.of(c,rootNavigator: true).pop();} on Exception catch(e){errormessage(Colors.red, "something went wrong", c);}
+                    Fluttertoast.showToast(msg: "post reported");
+                    Future.delayed(const Duration(seconds:1 ));
+                    Navigator.of(c,rootNavigator: true).pop();} on Exception catch(e){Fluttertoast.showToast(msg: "something went wrong",backgroundColor: Colors.red);}
                   },
                   child: const Text('OK',style: TextStyle(color: Colors.red),),
                 ),
@@ -107,7 +97,7 @@ popupmenu (c,id){
             )
           );
         }else if(value == 1){
-          var url = Uri.parse("mailto:secretsapp@gmail.com?subject=postid:"+id+"&body=");
+          var url = Uri.parse("mailto:secretsapp@gmail.com?subject=postid:$id&body=");
           try{
             await launchUrl(url);
           }on Exception catch(e){
@@ -115,42 +105,25 @@ popupmenu (c,id){
           }
         }
         else if(value==2){
-          Navigator.of(c).push(MaterialPageRoute(builder: (c)=>mypolls()));
+          Navigator.of(c).push(MaterialPageRoute(builder: (c)=>const Mypolls()));
         }
       }
   );
 }
 
-class Mysplash extends StatelessWidget{
-  const Mysplash({super.key});
-
-  @override
-  Widget build(BuildContext context){
-    return MaterialApp(
-      title: 'Splash Screen',
-      home: spalshscreen()
-    );
-  }
-}
 
 
-class  spalshscreen  extends StatelessWidget {
-  @override
-  Widget build(BuildContext context){
-    return AnimatedSplashScreen(splash: Text("Secrets",style: TextStyle(fontSize: 55,fontStyle: FontStyle.italic,color: Colors.white,fontWeight: FontWeight.w800),), backgroundColor: Colors.blueAccent,
-      nextScreen: Mylogin() ,duration: 4000,);
-  }
-}
+
 
  dynamiclinkhandler(c) async {
 
-   await FirebaseDynamicLinks.instance.onLink.listen((event) {
+   FirebaseDynamicLinks.instance.onLink.listen((event) {
     if(event!=null){
     List pathfragments = event.link.path.split("/");
     if (pathfragments[1]=="polls"){
     Navigator.of(c).push(MaterialPageRoute(builder: (c)=>individualpollpage(pathfragments[2],true)));}
     if (pathfragments[1]=="confession"){
-      Navigator.of(c).push(MaterialPageRoute(builder: (c)=>Myconfession()));}
+      Navigator.of(c).push(MaterialPageRoute(builder: (c)=>const Voting()));}
     }}
   );
 

@@ -2,39 +2,14 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/rendering.dart';
-import 'package:flutter/services.dart';
-import 'firebase_options.dart';
-import 'package:animated_splash_screen/animated_splash_screen.dart';
-import 'package:show_more_text_popup/show_more_text_popup.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:sql_conn/sql_conn.dart';
-import 'package:sliding_up_panel/sliding_up_panel.dart';
-import 'package:flutter_gradient_colors/flutter_gradient_colors.dart';
-import 'package:readmore/readmore.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:date_time_picker/date_time_picker.dart';
-import 'package:lottie/lottie.dart';
-import 'package:intl/intl.dart';
-import 'package:share_plus/share_plus.dart';
-import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
-import 'sql_queries.dart';
-import 'firestore.dart';
-import 'package:page_transition/page_transition.dart';
-import 'package:flutter_polls/flutter_polls.dart';
-import 'login_page.dart';
-import 'signup_page.dart';
-import 'email_verify.dart';
-import 'confession_posts.dart';
-import 'posts_page.dart';
-import 'newpost_page.dart';
-import 'main.dart';
 import 'voting_page.dart';
 
-class mypolls extends StatelessWidget{
+class Mypolls extends StatelessWidget{
+  const Mypolls({super.key});
+
   @override
   Widget build(BuildContext context){
     return MaterialApp(
@@ -77,6 +52,12 @@ class _mypollpage extends State<mypollspage>{
   }
 
   @override
+  void dispose(){
+    myfeed.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context){
     return Builder(builder: (context)=>
     Scaffold(
@@ -84,8 +65,8 @@ class _mypollpage extends State<mypollspage>{
         backgroundColor: Colors.indigo[400],
         foregroundColor: Colors.white,
         title: const Text("My Polls"),
-        leading: IconButton(icon: Icon(Icons.arrow_back),onPressed: (){
-          Navigator.of(context).push(MaterialPageRoute(builder: (context)=>voting()));
+        leading: IconButton(icon: const Icon(Icons.arrow_back),onPressed: (){
+          Navigator.of(context).push(MaterialPageRoute(builder: (context)=>const Voting()));
 
         },),
       ),
@@ -99,9 +80,9 @@ class _mypollpage extends State<mypollspage>{
 mypollspopupmenu(BuildContext context,var documentid){
   return PopupMenuButton(itemBuilder: (context){
   return[
-    const PopupMenuItem(child: Text("End Poll"),value: 0,),
-    const PopupMenuItem(child: Text("Delete",style: TextStyle(color: Colors.red,fontWeight: FontWeight.bold),),value: 1,),
-    const PopupMenuItem(child: Text("Contact Us"),value:2)
+    const PopupMenuItem(value: 0,child: Text("End Poll"),),
+    const PopupMenuItem(value: 1,child: Text("Delete",style: TextStyle(color: Colors.red,fontWeight: FontWeight.bold),),),
+    const PopupMenuItem(value:2, child: Text("Contact Us"))
   ];},
   onSelected: (value) async{
     if(value==1){
@@ -111,7 +92,7 @@ mypollspopupmenu(BuildContext context,var documentid){
         actions: [
           TextButton(onPressed: (){
             Navigator.of(context,rootNavigator: true).pop();
-          }, child: Text("Cancel")),
+          }, child: const Text("Cancel")),
           TextButton(onPressed: ()async{
             try{
             await FirebaseFirestore.instance.collection("polls").doc(documentid).delete();
@@ -133,7 +114,7 @@ mypollspopupmenu(BuildContext context,var documentid){
       Fluttertoast.showToast(msg: "Your poll has been ended successfully");
     }
     if (value==2){
-      var url = Uri.parse("mailto:secretsapp@gmail.com?subject=postid:"+documentid+"&body=");
+      var url = Uri.parse("mailto:secretsapp@gmail.com?subject=postid:$documentid&body=");
       try{
         await launchUrl(url);
       }on Exception catch(e){
