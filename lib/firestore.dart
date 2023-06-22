@@ -46,7 +46,7 @@ Future<String> firebaseUserSignup(useremail,userpassword) async {
     else{
       result="something went wrong";
     }
-  } on PlatformException catch (e) {
+  }  catch (e) {
     result =e.toString();
   }
   return result;

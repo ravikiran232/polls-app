@@ -1,114 +1,42 @@
 {
   "project_info": {
-    "project_number": "773338812560",
-    "firebase_url": "https://fir-integration-c6fab-default-rtdb.asia-southeast1.firebasedatabase.app",
-    "project_id": "fir-integration-c6fab",
-    "storage_bucket": "fir-integration-c6fab.appspot.com"
+    "project_number": "474717404861",
+    "project_id": "polls-aec32",
+    "storage_bucket": "polls-aec32.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:773338812560:android:f5621bafaf617510be4815",
-        "android_client_info": {
-          "package_name": "com.example.livecamera"
-        }
-      },
-      "oauth_client": [
-        {
-          "client_id": "773338812560-slig3rdmdtkkaqfitnn1u80f6303dgvi.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
-      "api_key": [
-        {
-          "current_key": "AIzaSyBYAVyh4rf6bq7cNMjY__yrfQMoO0RdbGM"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "773338812560-slig3rdmdtkkaqfitnn1u80f6303dgvi.apps.googleusercontent.com",
-              "client_type": 3
-            },
-            {
-              "client_id": "773338812560-0jpf1n95gnfc92kfg6os5mcfmlipsuob.apps.googleusercontent.com",
-              "client_type": 2,
-              "ios_info": {
-                "bundle_id": "com.example.socialise"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:773338812560:android:dbb63f4ac2c20061be4815",
+        "mobilesdk_app_id": "1:474717404861:android:cb8fa77bd1bd0475c4c1d4",
         "android_client_info": {
           "package_name": "com.example.login.login"
         }
       },
       "oauth_client": [
         {
-          "client_id": "773338812560-slig3rdmdtkkaqfitnn1u80f6303dgvi.apps.googleusercontent.com",
+          "client_id": "474717404861-3elqlq1cdrmglrd4qdsssjllg169e8n2.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.login.login",
+            "certificate_hash": "0dad3a41d195a9e48554e410419bb909abe882f9"
+          }
+        },
+        {
+          "client_id": "474717404861-6g9hk3f3gndlqfk4dm5n005vtj231miq.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyBYAVyh4rf6bq7cNMjY__yrfQMoO0RdbGM"
+          "current_key": "AIzaSyAdvx6IFuZYtPeTXgMlsPDWkeGVRMHO8Bo"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "773338812560-slig3rdmdtkkaqfitnn1u80f6303dgvi.apps.googleusercontent.com",
+              "client_id": "474717404861-6g9hk3f3gndlqfk4dm5n005vtj231miq.apps.googleusercontent.com",
               "client_type": 3
-            },
-            {
-              "client_id": "773338812560-0jpf1n95gnfc92kfg6os5mcfmlipsuob.apps.googleusercontent.com",
-              "client_type": 2,
-              "ios_info": {
-                "bundle_id": "com.example.socialise"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:773338812560:android:829945563fa9aa67be4815",
-        "android_client_info": {
-          "package_name": "com.example.socialise"
-        }
-      },
-      "oauth_client": [
-        {
-          "client_id": "773338812560-slig3rdmdtkkaqfitnn1u80f6303dgvi.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
-      "api_key": [
-        {
-          "current_key": "AIzaSyBYAVyh4rf6bq7cNMjY__yrfQMoO0RdbGM"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "773338812560-slig3rdmdtkkaqfitnn1u80f6303dgvi.apps.googleusercontent.com",
-              "client_type": 3
-            },
-            {
-              "client_id": "773338812560-0jpf1n95gnfc92kfg6os5mcfmlipsuob.apps.googleusercontent.com",
-              "client_type": 2,
-              "ios_info": {
-                "bundle_id": "com.example.socialise"
-              }
             }
           ]
         }

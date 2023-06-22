@@ -77,30 +77,30 @@ class _votingpage extends State<votingpage> with TickerProviderStateMixin{
     dynamiclinkhandler(context); // for handling dynamiclinks of firebas
     uid= FirebaseAuth.instance.currentUser!.uid;
 
-    live.addListener(() {
-    if(live.position.atEdge){
-      if(live.position.pixels==0){}else{
-        setState(() {
-        widget.livecount+=2;
-        _lazyloading=true;
-        __livefeed.cancel();
-      });
-        getdata(streamsubscription: __livefeed, streamer: _livefeed,live: true);
-       }
-    }});
+    // live.addListener(() {
+    // if(live.position.atEdge){
+    //   if(live.position.pixels==0){}else{
+    //     setState(() {
+    //     widget.livecount+=2;
+    //     _lazyloading=true;
+    //     __livefeed.cancel();
+    //   });
+    //     getdata(streamsubscription: __livefeed, streamer: _livefeed,live: true);
+    //    }
+    // }});
 
-    ended.addListener(() {
-      if(ended.position.atEdge){
-        if(ended.position.pixels==0){}
-        else{
-        setState(() {
-          widget.endcount+=2;
-          _lazyloading=true;
-          __endedfeed.cancel();
-        });
-        getdata(streamsubscription: __endedfeed, streamer: _endedfeed,live: false);
-      }}
-    });
+    // ended.addListener(() {
+    //   if(ended.position.atEdge){
+    //     if(ended.position.pixels==0){}
+    //     else{
+    //     setState(() {
+    //       widget.endcount+=2;
+    //       _lazyloading=true;
+    //       __endedfeed.cancel();
+    //     });
+    //     getdata(streamsubscription: __endedfeed, streamer: _endedfeed,live: false);
+    //   }}
+    // });
 
     //  trendingfeed = FirebaseFirestore.instance.collection("polls").where("endtime",isGreaterThanOrEqualTo: DateTime.now()).limit(3).snapshots();
     // livefeed=FirebaseFirestore.instance.collection("polls").where("endtime",isGreaterThanOrEqualTo: DateTime.now()).limit(livecount).snapshots();
@@ -116,14 +116,14 @@ class _votingpage extends State<votingpage> with TickerProviderStateMixin{
       });},onError: (e){setState(() {
       error=true;
     });});
-    __livefeed=FirebaseFirestore.instance.collection("polls").where("endtime",isGreaterThanOrEqualTo: DateTime.now()).orderBy('endtime',descending: true).limit(3).snapshots().listen((event) {
+    __livefeed=FirebaseFirestore.instance.collection("polls").where("endtime",isGreaterThanOrEqualTo: DateTime.now()).orderBy('endtime',descending: true).snapshots().listen((event) {
       setState(() {
         _livefeed=event.docs ;
         liveloading=false;
       });},onError: (e){setState(() {
         error=true;
       });});
-    __endedfeed=FirebaseFirestore.instance.collection("polls").where("endtime",isLessThanOrEqualTo: DateTime.now()).orderBy('endtime',descending: true).limit(3).snapshots().listen((event) {
+    __endedfeed=FirebaseFirestore.instance.collection("polls").where("endtime",isLessThanOrEqualTo: DateTime.now()).orderBy('endtime',descending: true).snapshots().listen((event) {
       setState(() {
 
        _endedfeed=event.docs ;
@@ -138,8 +138,8 @@ class _votingpage extends State<votingpage> with TickerProviderStateMixin{
   @override
   void dispose() {
     // TODO: implement dispose
-    live.removeListener(() { });
-    ended.removeListener(() { });
+    // live.removeListener(() { });
+    // ended.removeListener(() { });
     __livefeed.cancel();
     __endedfeed.cancel();
     __trendingfeed.cancel();

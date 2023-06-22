@@ -23,9 +23,15 @@ class DefaultFirebaseOptions {
       case TargetPlatform.android:
         return android;
       case TargetPlatform.iOS:
-        return ios;
+        throw UnsupportedError(
+          'DefaultFirebaseOptions have not been configured for ios - '
+          'you can reconfigure this by running the FlutterFire CLI again.',
+        );
       case TargetPlatform.macOS:
-        return macos;
+        throw UnsupportedError(
+          'DefaultFirebaseOptions have not been configured for macos - '
+          'you can reconfigure this by running the FlutterFire CLI again.',
+        );
       case TargetPlatform.windows:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for windows - '
@@ -44,44 +50,20 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyDFyNgmKsv9xrhxg0GaeDcs6mJCioZzJ0M',
-    appId: '1:773338812560:web:34233a2a385b7a50be4815',
-    messagingSenderId: '773338812560',
-    projectId: 'fir-integration-c6fab',
-    authDomain: 'fir-integration-c6fab.firebaseapp.com',
-    databaseURL: 'https://fir-integration-c6fab-default-rtdb.asia-southeast1.firebasedatabase.app',
-    storageBucket: 'fir-integration-c6fab.appspot.com',
-    measurementId: 'G-PE6B6T42ZD',
+    apiKey: 'AIzaSyCBKWhmAhVyT_DDNmwbPzyLLwg8Ua5U8KM',
+    appId: '1:474717404861:web:7b9126dfa59222fec4c1d4',
+    messagingSenderId: '474717404861',
+    projectId: 'polls-aec32',
+    authDomain: 'polls-aec32.firebaseapp.com',
+    storageBucket: 'polls-aec32.appspot.com',
+    measurementId: 'G-QH9JYNG5KW',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyBYAVyh4rf6bq7cNMjY__yrfQMoO0RdbGM',
-    appId: '1:773338812560:android:dbb63f4ac2c20061be4815',
-    messagingSenderId: '773338812560',
-    projectId: 'fir-integration-c6fab',
-    databaseURL: 'https://fir-integration-c6fab-default-rtdb.asia-southeast1.firebasedatabase.app',
-    storageBucket: 'fir-integration-c6fab.appspot.com',
-  );
-
-  static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyAjGydRgsZ-kYzXN-0rb0SDnlAYOOEjOmU',
-    appId: '1:773338812560:ios:1e3f0d0dc3dd0da1be4815',
-    messagingSenderId: '773338812560',
-    projectId: 'fir-integration-c6fab',
-    databaseURL: 'https://fir-integration-c6fab-default-rtdb.asia-southeast1.firebasedatabase.app',
-    storageBucket: 'fir-integration-c6fab.appspot.com',
-    iosClientId: '773338812560-m0138hefb7ian2i7of98uru79pfu5e5o.apps.googleusercontent.com',
-    iosBundleId: 'com.example.login.login',
-  );
-
-  static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyAjGydRgsZ-kYzXN-0rb0SDnlAYOOEjOmU',
-    appId: '1:773338812560:ios:1e3f0d0dc3dd0da1be4815',
-    messagingSenderId: '773338812560',
-    projectId: 'fir-integration-c6fab',
-    databaseURL: 'https://fir-integration-c6fab-default-rtdb.asia-southeast1.firebasedatabase.app',
-    storageBucket: 'fir-integration-c6fab.appspot.com',
-    iosClientId: '773338812560-m0138hefb7ian2i7of98uru79pfu5e5o.apps.googleusercontent.com',
-    iosBundleId: 'com.example.login.login',
+    apiKey: 'AIzaSyAdvx6IFuZYtPeTXgMlsPDWkeGVRMHO8Bo',
+    appId: '1:474717404861:android:cb8fa77bd1bd0475c4c1d4',
+    messagingSenderId: '474717404861',
+    projectId: 'polls-aec32',
+    storageBucket: 'polls-aec32.appspot.com',
   );
 }
