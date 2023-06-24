@@ -1,9 +1,10 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:show_more_text_popup/show_more_text_popup.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:login/signup2.dart';
+import 'package:sign_in_button/sign_in_button.dart';
 import 'firestore.dart';
-import 'signup_page.dart';
 import 'email_verify.dart';
 import 'voting_page.dart';
 
@@ -48,7 +49,7 @@ class _Myloginpage extends State<MyloginPage> {
         if (user != null) {
           if (user.emailVerified) {
             Navigator.pushReplacement(
-                context, MaterialPageRoute(builder: (context) => Voting()));
+                context, MaterialPageRoute(builder: (context) => const Voting()));
           } else {
             Navigator.pushReplacement(context,
                 MaterialPageRoute(builder: (context) => const Emailverify()));
@@ -69,8 +70,8 @@ class _Myloginpage extends State<MyloginPage> {
         appBar: AppBar(
           backgroundColor: Colors.blue,
           foregroundColor: Colors.white,
-          title: Text("Secrets"),
-          titleTextStyle: TextStyle(
+          title: const Center(child: Text("Login"),),
+          titleTextStyle: const TextStyle(
               fontStyle: (FontStyle.italic),
               fontWeight: FontWeight.w500,
               fontSize: 40),
@@ -83,21 +84,21 @@ class _Myloginpage extends State<MyloginPage> {
           )),
         ),
         body: SingleChildScrollView(
-          padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              SizedBox(
+              const SizedBox(
                 height: 30,
               ),
-              Text(
-                'Login',
-                style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
-                textAlign: TextAlign.left,
-              ),
-              SizedBox(
-                height: 40,
-              ),
+              // const Text(
+              //   'Login',
+              //   style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
+              //   textAlign: TextAlign.left,
+              // ),
+              // const SizedBox(
+              //   height: 40,
+              // ),
               TextField(
                 controller: emailController,
                 //onChanged: ((v) {emailController.text=v;}),
@@ -112,7 +113,7 @@ class _Myloginpage extends State<MyloginPage> {
                       borderRadius: BorderRadius.circular(20.0), gapPadding: 4),
                 ),
               ),
-              SizedBox(
+              const SizedBox(
                 height: 20,
               ),
               TextField(
@@ -139,12 +140,12 @@ class _Myloginpage extends State<MyloginPage> {
                       borderRadius: BorderRadius.circular(20.0), gapPadding: 4),
                 ),
               ),
-              SizedBox(
+              const SizedBox(
                 height: 25,
               ),
               Builder(builder: (BuildContext context) {
                 return (Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 20.0),
+                  padding: const EdgeInsets.symmetric(horizontal: 10.0),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -169,11 +170,13 @@ class _Myloginpage extends State<MyloginPage> {
                                   Fluttertoast.showToast(
                                       msg: "successfully logged in");
                                   if (user2 == true) {
+                                    // ignore: use_build_context_synchronously
                                     Navigator.pushReplacement(
                                         context,
                                         MaterialPageRoute(
-                                            builder: (context) => Voting()));
+                                            builder: (context) => const Voting()));
                                   } else {
+                                    // ignore: use_build_context_synchronously
                                     Navigator.pushReplacement(
                                         context,
                                         MaterialPageRoute(
@@ -187,17 +190,11 @@ class _Myloginpage extends State<MyloginPage> {
                                       msg: a, backgroundColor: Colors.red);
                                 }
                               },
-                              style: ButtonStyle(
-                                  shape: MaterialStateProperty.all(
-                                      RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(30.0)))),
+                              style: ElevatedButton.styleFrom(
+                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                          minimumSize: const Size(90, 40)),
                               child: const Text(
-                                "Login",
-                                style: TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.w500,
-                                    fontStyle: FontStyle.italic),
+                                "login",
                               ),
                             )
                           : const Center(
@@ -207,11 +204,11 @@ class _Myloginpage extends State<MyloginPage> {
                         child: const Text("Forgot Password?"),
                         onTap: () async {
                           var _result;
-                          ShowMoreTextPopup(context,
-                              text:
-                                  "enter your email in email box and click forgot password",
-                              backgroundColor: Colors.lightBlueAccent,
-                              height: 100);
+                          // ShowMoreTextPopup(context,
+                          //     text:
+                          //         "enter your email in email box and click forgot password",
+                          //     backgroundColor: Colors.lightBlueAccent,
+                          //     height: 100);
                           try {
                             await FirebaseAuth.instance.sendPasswordResetEmail(
                                 email: emailController.text);
@@ -248,9 +245,30 @@ class _Myloginpage extends State<MyloginPage> {
                           Navigator.push(
                               context,
                               MaterialPageRoute(
-                                  builder: (context) => Signup()));
+                                  builder: (context) => const SignUp()));
                         })));
               }),
+              const SizedBox(height: 5,),
+              SignInButton(
+                          Buttons.google,
+                          onPressed: () async {
+                            try{
+                            final GoogleSignInAccount? googleUser =
+                                await GoogleSignIn().signIn();
+                            final GoogleSignInAuthentication? googleAuth =
+                                await googleUser?.authentication;
+                            final credential = GoogleAuthProvider.credential(
+                              accessToken: googleAuth?.accessToken,
+                              idToken: googleAuth?.idToken,
+                            );
+                              await FirebaseAuth.instance
+                                  .signInWithCredential(credential);
+                              Fluttertoast.showToast(msg: "Successful");
+                            } catch (e) {
+                              Fluttertoast.showToast(msg: e.toString());
+                            }
+                          },
+                        )
             ],
           ),
         ),

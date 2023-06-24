@@ -1,41 +1,41 @@
 {
   "project_info": {
-    "project_number": "474717404861",
-    "project_id": "polls-aec32",
-    "storage_bucket": "polls-aec32.appspot.com"
+    "project_number": "430290129956",
+    "project_id": "flutter-surveys",
+    "storage_bucket": "flutter-surveys.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:474717404861:android:cb8fa77bd1bd0475c4c1d4",
+        "mobilesdk_app_id": "1:430290129956:android:c459269a149dfc134db4b1",
         "android_client_info": {
-          "package_name": "com.example.login.login"
+          "package_name": "com.gamingentertainment.surveys"
         }
       },
       "oauth_client": [
         {
-          "client_id": "474717404861-3elqlq1cdrmglrd4qdsssjllg169e8n2.apps.googleusercontent.com",
+          "client_id": "430290129956-sqrbq3svu8fnfjr59cmlvm5r234d6e7k.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.example.login.login",
+            "package_name": "com.gamingentertainment.surveys",
             "certificate_hash": "0dad3a41d195a9e48554e410419bb909abe882f9"
           }
         },
         {
-          "client_id": "474717404861-6g9hk3f3gndlqfk4dm5n005vtj231miq.apps.googleusercontent.com",
+          "client_id": "430290129956-coj2c89f76armfbv5kejdegtta54crr6.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyAdvx6IFuZYtPeTXgMlsPDWkeGVRMHO8Bo"
+          "current_key": "AIzaSyDFCTkUn5t-c6pKhOr4TMUVyWK5l2QejAA"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "474717404861-6g9hk3f3gndlqfk4dm5n005vtj231miq.apps.googleusercontent.com",
+              "client_id": "430290129956-coj2c89f76armfbv5kejdegtta54crr6.apps.googleusercontent.com",
               "client_type": 3
             }
           ]

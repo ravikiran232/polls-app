@@ -1,4 +1,4 @@
-package com.example.login.login
+package com.gamingentertainment.surveys
 
 import io.flutter.embedding.android.FlutterActivity
 

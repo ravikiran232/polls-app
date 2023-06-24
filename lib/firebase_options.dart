@@ -50,20 +50,20 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyCBKWhmAhVyT_DDNmwbPzyLLwg8Ua5U8KM',
-    appId: '1:474717404861:web:7b9126dfa59222fec4c1d4',
-    messagingSenderId: '474717404861',
-    projectId: 'polls-aec32',
-    authDomain: 'polls-aec32.firebaseapp.com',
-    storageBucket: 'polls-aec32.appspot.com',
-    measurementId: 'G-QH9JYNG5KW',
+    apiKey: 'AIzaSyDI6lq-NWzL5PxLPVsSmMcbq9-Zhdjodh0',
+    appId: '1:430290129956:web:054387a1ee0e57774db4b1',
+    messagingSenderId: '430290129956',
+    projectId: 'flutter-surveys',
+    authDomain: 'flutter-surveys.firebaseapp.com',
+    storageBucket: 'flutter-surveys.appspot.com',
+    measurementId: 'G-MBP3PRSX45',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyAdvx6IFuZYtPeTXgMlsPDWkeGVRMHO8Bo',
-    appId: '1:474717404861:android:cb8fa77bd1bd0475c4c1d4',
-    messagingSenderId: '474717404861',
-    projectId: 'polls-aec32',
-    storageBucket: 'polls-aec32.appspot.com',
+    apiKey: 'AIzaSyDFCTkUn5t-c6pKhOr4TMUVyWK5l2QejAA',
+    appId: '1:430290129956:android:c459269a149dfc134db4b1',
+    messagingSenderId: '430290129956',
+    projectId: 'flutter-surveys',
+    storageBucket: 'flutter-surveys.appspot.com',
   );
 }

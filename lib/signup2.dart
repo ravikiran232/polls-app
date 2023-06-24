@@ -1,5 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:auth_buttons/auth_buttons.dart';
+import 'package:sign_in_button/sign_in_button.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter/material.dart';
 import 'package:login/login_page.dart';
@@ -11,7 +11,7 @@ class SignUp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return const MaterialApp(
       home: SignUpPage(),
     );
   }
@@ -25,11 +25,18 @@ class SignUpPage extends StatefulWidget {
 }
 
 class SignUpPage2 extends State<SignUpPage> {
-  GlobalKey<FormFieldState> signUpFormKey = GlobalKey();
+  final GlobalKey<FormState> signUpFormKey = new GlobalKey();
   TextEditingController email = TextEditingController();
   TextEditingController password = TextEditingController();
   TextEditingController confirmPassword = TextEditingController();
   bool passwordObscure = true, confirmPasswordObscure = true, isLoading = false;
+
+  String? emailvalidator(String? email) {
+    if (email!.isEmpty) {
+      return "* Required field";
+    }
+    return null;
+  }
 
   String? passwordvalidator(String? passwordtext) {
     if (passwordtext!.length < 8) {
@@ -39,7 +46,7 @@ class SignUpPage2 extends State<SignUpPage> {
   }
 
   String? confirmPasswordValidator(String? passwordtext) {
-    if (password.text == passwordtext!) {
+    if (password.text != passwordtext!) {
       return "password doesn't match";
     }
     return null;
@@ -54,12 +61,12 @@ class SignUpPage2 extends State<SignUpPage> {
               appBar: AppBar(
                 backgroundColor: Colors.blue,
                 foregroundColor: Colors.white,
-                title: const Text("SignUp"),
+                title: const Center(child: Text("SignUp")),
                 titleTextStyle: const TextStyle(
                     fontStyle: (FontStyle.italic),
                     fontWeight: FontWeight.w500,
                     fontSize: 40),
-                toolbarHeight: height * 0.25,
+                toolbarHeight: height * 0.35,
                 toolbarOpacity: 0.1,
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.vertical(
@@ -68,12 +75,12 @@ class SignUpPage2 extends State<SignUpPage> {
               ),
               body: SingleChildScrollView(
                 child: Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 10),
                     child: Column(
                       children: [
                         const SizedBox(
-                          height: 10,
+                          height: 30,
                         ),
                         Form(
                             key: signUpFormKey,
@@ -81,7 +88,11 @@ class SignUpPage2 extends State<SignUpPage> {
                               children: [
                                 TextFormField(
                                   controller: email,
+                                  validator: emailvalidator,
                                   decoration: const InputDecoration(
+                                    border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(20))),
                                     suffixIcon: Icon(
                                       Icons.email,
                                       color: Colors.blue,
@@ -90,18 +101,36 @@ class SignUpPage2 extends State<SignUpPage> {
                                     hintText: "Enter your email",
                                   ),
                                 ),
+                                const SizedBox(
+                                  height: 10,
+                                ),
                                 TextFormField(
                                   controller: password,
                                   obscureText: passwordObscure,
                                   obscuringCharacter: "*",
                                   validator: passwordvalidator,
-                                  decoration: const InputDecoration(
+                                  decoration: InputDecoration(
+                                      border: const OutlineInputBorder(
+                                          borderRadius: BorderRadius.all(
+                                              Radius.circular(20))),
                                       labelText: "Password",
                                       hintText: "Enter your password",
-                                      suffixIcon: Icon(
-                                        Icons.remove_red_eye,
-                                        color: Colors.blue,
-                                      )),
+                                      suffixIcon: IconButton(
+                                          onPressed: () {
+                                            setState(() {
+                                              passwordObscure =
+                                                  !passwordObscure;
+                                            });
+                                          },
+                                          icon: Icon(
+                                            !passwordObscure
+                                                ? Icons.visibility_off
+                                                : Icons.visibility,
+                                            color: Colors.blue,
+                                          ))),
+                                ),
+                                const SizedBox(
+                                  height: 10,
                                 ),
                                 TextFormField(
                                   controller: confirmPassword,
@@ -109,6 +138,9 @@ class SignUpPage2 extends State<SignUpPage> {
                                   obscuringCharacter: "*",
                                   validator: confirmPasswordValidator,
                                   decoration: const InputDecoration(
+                                      border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.all(
+                                              Radius.circular(20))),
                                       labelText: "Confirm password",
                                       hintText: "Re-enter your Password"),
                                 )
@@ -116,7 +148,7 @@ class SignUpPage2 extends State<SignUpPage> {
                             )),
                         Padding(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 5),
+                                horizontal: 10, vertical: 10),
                             child: Row(
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
@@ -126,9 +158,12 @@ class SignUpPage2 extends State<SignUpPage> {
                                         setState(() {
                                           isLoading = true;
                                         });
+                                        print("auth");
+                                        print(signUpFormKey.currentState
+                                            ?.validate());
                                         if (signUpFormKey.currentState
                                                 ?.validate() ==
-                                            null) {
+                                            true) {
                                           String res = await firebaseUserSignup(
                                               email.text, password.text);
                                           setState(() {
@@ -136,19 +171,23 @@ class SignUpPage2 extends State<SignUpPage> {
                                           });
                                           Fluttertoast.showToast(msg: res);
                                         } else {
+                                          setState(() {
+                                            isLoading = false;
+                                          });
                                           Fluttertoast.showToast(
                                               msg: "Something went wrong");
                                         }
                                       },
-                                      style: ButtonStyle(
-                                          shape: MaterialStateProperty.all(
-                                              const RoundedRectangleBorder(
-                                                  borderRadius:
-                                                      BorderRadius.all(
-                                                          Radius.circular(
-                                                              10))))),
+                                      style: ElevatedButton.styleFrom(
+                                          shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(10)),
+                                          minimumSize: const Size(90, 40)),
                                       child: isLoading
-                                          ? const CircularProgressIndicator()
+                                          ? const CircularProgressIndicator(
+                                              color: Colors.white,
+                                              strokeWidth: 3,
+                                            )
                                           : const Text("Signup")),
                                   GestureDetector(
                                     child:
@@ -164,8 +203,10 @@ class SignUpPage2 extends State<SignUpPage> {
                         const SizedBox(
                           height: 5,
                         ),
-                        GoogleAuthButton(
+                        SignInButton(
+                          Buttons.google,
                           onPressed: () async {
+                            try{
                             final GoogleSignInAccount? googleUser =
                                 await GoogleSignIn().signIn();
                             final GoogleSignInAuthentication? googleAuth =
@@ -174,13 +215,13 @@ class SignUpPage2 extends State<SignUpPage> {
                               accessToken: googleAuth?.accessToken,
                               idToken: googleAuth?.idToken,
                             );
-                            try{
-                              await FirebaseAuth.instance.signInWithCredential(credential);
+                              await FirebaseAuth.instance
+                                  .signInWithCredential(credential);
                               Fluttertoast.showToast(msg: "Successful");
-                            } catch(e){Fluttertoast.showToast(msg: e.toString());}
+                            } catch (e) {
+                              Fluttertoast.showToast(msg: e.toString());
+                            }
                           },
-                          style: const AuthButtonStyle(
-                              iconType: AuthIconType.secondary),
                         )
                       ],
                     )),
